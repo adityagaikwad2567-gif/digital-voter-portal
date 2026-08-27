@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Reports — Admin{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2><i class="bi bi-download"></i> Reports</h2>
+    <p class="text-muted">Generate and export system reports as CSV files.</p>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people text-primary" style="font-size:3rem"></i>
+                    <h5 class="mt-3">Voter Registration Report</h5>
+                    <p class="text-muted">Export all registered voters with their details.</p>
+                    <a href="{{ url_for('admin.export_report', report_type='voters') }}" class="btn btn-primary"><i class="bi bi-download"></i> Export CSV</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark text-warning" style="font-size:3rem"></i>
+                    <h5 class="mt-3">Application Report</h5>
+                    <p class="text-muted">Export all applications with status and dates.</p>
+                    <a href="{{ url_for('admin.export_report', report_type='applications') }}" class="btn btn-warning"><i class="bi bi-download"></i> Export CSV</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-check text-success" style="font-size:3rem"></i>
+                    <h5 class="mt-3">Election Participation</h5>
+                    <p class="text-muted">Export voting data and turnout statistics.</p>
+                    <a href="{{ url_for('admin.export_report', report_type='elections') }}" class="btn btn-success"><i class="bi bi-download"></i> Export CSV</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-trophy text-info" style="font-size:3rem"></i>
+                    <h5 class="mt-3">Candidate Results</h5>
+                    <p class="text-muted">Export vote counts and results per candidate.</p>
+                    <a href="{{ url_for('admin.export_report', report_type='results') }}" class="btn btn-info"><i class="bi bi-download"></i> Export CSV</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle text-danger" style="font-size:3rem"></i>
+                    <h5 class="mt-3">Grievance Report</h5>
+                    <p class="text-muted">Export grievances and their resolution status.</p>
+                    <a href="{{ url_for('admin.export_report', report_type='grievances') }}" class="btn btn-danger"><i class="bi bi-download"></i> Export CSV</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-journal-text text-secondary" style="font-size:3rem"></i>
+                    <h5 class="mt-3">Audit Log Report</h5>
+                    <p class="text-muted">Export audit trail of all system actions.</p>
+                    <a href="{{ url_for('admin.export_report', report_type='audit') }}" class="btn btn-secondary"><i class="bi bi-download"></i> Export CSV</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

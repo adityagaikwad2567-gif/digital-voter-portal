@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}My Profile — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-person-circle"></i> My Profile</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li class="breadcrumb-item active">Profile</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="form-card">
+                <h5 class="mb-4" style="color: var(--primary);"><i class="bi bi-person-badge"></i> Personal Information</h5>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Name</div>
+                    <div class="col-sm-8 fw-bold">{{ profile.name if profile else current_user.name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Email</div>
+                    <div class="col-sm-8">{{ current_user.email }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Mobile</div>
+                    <div class="col-sm-8">{{ current_user.mobile or 'Not provided' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Demo EPIC</div>
+                    <div class="col-sm-8"><code>{{ current_user.voter_id or 'Not assigned' }}</code></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Role</div>
+                    <div class="col-sm-8"><span class="status-badge active">{{ current_user.role }}</span></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Status</div>
+                    <div class="col-sm-8"><span class="status-badge {{ current_user.status }}">{{ current_user.status }}</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="form-card">
+                <h5 class="mb-4" style="color: var(--primary);"><i class="bi bi-geo-alt"></i> Voter Profile</h5>
+                {% if profile and profile.dob %}
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Date of Birth</div>
+                    <div class="col-sm-8">{{ profile.dob|format_date('%d %B %Y') }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Gender</div>
+                    <div class="col-sm-8">{{ profile.gender or 'Not provided' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Address</div>
+                    <div class="col-sm-8">{{ profile.address or 'Not provided' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">State</div>
+                    <div class="col-sm-8">{{ profile.state or 'Not provided' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">District</div>
+                    <div class="col-sm-8">{{ profile.district or 'Not provided' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Constituency</div>
+                    <div class="col-sm-8">{{ profile.constituency or 'Not provided' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Pincode</div>
+                    <div class="col-sm-8">{{ profile.pincode or 'Not provided' }}</div>
+                </div>
+                {% else %}
+                <p class="text-muted">No voter profile found. <a href="{{ url_for('voter.new_registration') }}">Complete your registration</a> to set up your profile.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="card-custom mt-4">
+        <div class="card-header"><i class="bi bi-bell"></i> Notifications</div>
+        <div class="card-body">
+            {% set notifications = get_user_notifications(current_user.id) if get_user_notifications is defined else [] %}
+            <p class="text-muted">Check your notifications for application updates and election announcements.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

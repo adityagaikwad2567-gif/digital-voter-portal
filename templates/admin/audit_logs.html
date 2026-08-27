@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Audit Logs — Admin{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+    <h2><i class="bi bi-journal-text"></i> Audit Logs</h2>
+    <p class="text-muted">Track all system activities and administrative actions.</p>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search actions..." value="{{ request.args.get('search', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="entity" class="form-select">
+                        <option value="">All Entities</option>
+                        <option value="user" {{ 'selected' if request.args.get('entity') == 'user' }}>User</option>
+                        <option value="application" {{ 'selected' if request.args.get('entity') == 'application' }}>Application</option>
+                        <option value="election" {{ 'selected' if request.args.get('entity') == 'election' }}>Election</option>
+                        <option value="vote" {{ 'selected' if request.args.get('entity') == 'vote' }}>Vote</option>
+                        <option value="grievance" {{ 'selected' if request.args.get('entity') == 'grievance' }}>Grievance</option>
+                        <option value="candidate" {{ 'selected' if request.args.get('entity') == 'candidate' }}>Candidate</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Filter</button>
+                </div>
+                <div class="col-auto">
+                    <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Action</th>
+                            <th>Entity</th>
+                            <th>Entity ID</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if logs %}
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.created_at|format_date('%d %b %Y, %H:%M:%S') }}</td>
+                            <td>{{ log.user_name or 'System' }}</td>
+                            <td><span class="badge bg-secondary">{{ log.user_role or '-' }}</span></td>
+                            <td>{{ log.action }}</td>
+                            <td><span class="badge bg-info">{{ log.entity or '-' }}</span></td>
+                            <td>{{ log.entity_id or '-' }}</td>
+                            <td><code>{{ log.ip_address or '-' }}</code></td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr><td colspan="7" class="text-center text-muted py-4">No audit logs found</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

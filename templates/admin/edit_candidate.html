@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Edit Candidate — Admin{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2><i class="bi bi-pencil"></i> Edit Candidate</h2>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Candidate Name *</label>
+                        <input type="text" name="name" class="form-control" value="{{ candidate.name }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Party / Group Name</label>
+                        <input type="text" name="party_name" class="form-control" value="{{ candidate.party_name or '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Symbol</label>
+                        <input type="text" name="symbol" class="form-control" value="{{ candidate.symbol or '' }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Description / Manifesto</label>
+                        <textarea name="description" class="form-control" rows="3">{{ candidate.description or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Save Changes</button>
+                    <a href="{{ url_for('admin.manage_candidates', election_id=candidate.election_id) }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

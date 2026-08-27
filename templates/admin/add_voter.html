@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Add Voter — Admin{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2><i class="bi bi-person-plus"></i> Add New Voter</h2>
+    <p class="text-muted">Create a new demo voter account for the academic system.</p>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email *</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="text" name="mobile" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Password *</label>
+                        <input type="password" name="password" class="form-control" required minlength="8">
+                        <small class="text-muted">Minimum 8 characters</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Date of Birth *</label>
+                        <input type="date" name="dob" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Gender *</label>
+                        <select name="gender" class="form-select" required>
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Address</label>
+                        <textarea name="address" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">State</label>
+                        <input type="text" name="state" class="form-control" value="Maharashtra">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">District</label>
+                        <input type="text" name="district" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Constituency</label>
+                        <input type="text" name="constituency" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Pincode</label>
+                        <input type="text" name="pincode" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Role</label>
+                        <select name="role" class="form-select">
+                            <option value="voter">Voter</option>
+                            <option value="admin">Admin</option>
+                            <option value="election_official">Election Official</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Create Voter</button>
+                    <a href="{{ url_for('admin.voters') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

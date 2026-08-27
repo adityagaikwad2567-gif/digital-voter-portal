@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ election.name }} — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2>{{ election.name }}</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('elections.list_elections') }}">Elections</a></li>
+                <li class="breadcrumb-item active">Details</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card-custom mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h4>{{ election.name }}</h4>
+                            <p class="text-muted">{{ election.description }}</p>
+                        </div>
+                        <span class="status-badge {{ election.status|lower }}">{{ election.status }}</span>
+                    </div>
+                    <div class="row" style="font-size: 0.9rem;">
+                        <div class="col-sm-6 mb-2"><strong>Type:</strong> {{ election.election_type }}</div>
+                        <div class="col-sm-6 mb-2"><strong>Constituency:</strong> {{ election.constituency }}</div>
+                        <div class="col-sm-6 mb-2"><strong>Start:</strong> {{ election.start_time|format_date('%d %B %Y, %H:%M') }}</div>
+                        <div class="col-sm-6 mb-2"><strong>End:</strong> {{ election.end_time|format_date('%d %B %Y, %H:%M') }}</div>
+                    </div>
+
+                    {% if election.status == 'Active' %}
+                    <div class="alert alert-success mt-3"><i class="bi bi-broadcast"></i> This election is currently active. You can cast your vote now!</div>
+                    {% endif %}
+
+                    {% if election.status == 'Active' and current_user.is_authenticated and not has_voted %}
+                    <a href="{{ url_for('voting.cast', election_id=election.id) }}" class="btn btn-success mt-2"><i class="bi bi-check2-square"></i> Vote Now</a>
+                    {% elif has_voted %}
+                    <div class="alert alert-info mt-2"><i class="bi bi-check-circle"></i> You have already voted in this election.</div>
+                    {% elif election.status == 'Completed' %}
+                    <a href="{{ url_for('elections.results_detail', election_id=election.id) }}" class="btn btn-primary mt-2"><i class="bi bi-bar-chart"></i> View Results</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Candidates -->
+            <h5 class="mb-3"><i class="bi bi-people"></i> Candidates</h5>
+            <div class="row g-3">
+                {% for candidate in candidates %}
+                <div class="col-md-4">
+                    <div class="card h-100" style="border-radius: var(--radius-lg); text-align: center;">
+                        <div class="card-body">
+                            <div class="candidate-avatar mx-auto mb-2" style="font-size: 1.5rem;">{{ candidate.symbol or '?' }}</div>
+                            <h6>{{ candidate.name }}</h6>
+                            <small class="text-muted">{{ candidate.party_name or 'Independent' }}</small>
+                            {% if candidate.description %}
+                            <p class="mt-2" style="font-size: 0.8rem;">{{ candidate.description[:100] }}{% if candidate.description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                            <a href="{{ url_for('elections.candidate_detail', candidate_id=candidate.id) }}" class="btn btn-sm btn-outline-primary">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% if not candidates %}
+                <div class="col-12"><p class="text-muted text-center py-3">No candidates registered yet.</p></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card-custom mb-3">
+                <div class="card-header"><i class="bi bi-info-circle"></i> Election Info</div>
+                <div class="card-body">
+                    <p style="font-size: 0.9rem;"><strong>Total Candidates:</strong> {{ candidates|length }}</p>
+                    <p style="font-size: 0.9rem;"><strong>Election Type:</strong> {{ election.election_type }}</p>
+                    <p style="font-size: 0.9rem;"><strong>Constituency:</strong> {{ election.constituency }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

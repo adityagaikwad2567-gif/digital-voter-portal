@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Eligibility Checker — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-check-circle"></i> Voter Eligibility Checker</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li class="breadcrumb-item active">Eligibility</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            {% if result %}
+            <div class="form-card mb-4">
+                <div class="text-center mb-4">
+                    {% if result.eligible %}
+                    <div style="font-size: 5rem; color: #28a745;"><i class="bi bi-check-circle-fill"></i></div>
+                    <h3 style="color: #28a745;">Eligible</h3>
+                    <p class="text-muted">Based on the information provided, you appear to be eligible for voter registration.</p>
+                    <a href="{{ url_for('voter.new_registration') }}" class="btn btn-primary-custom"><i class="bi bi-person-plus"></i> Register Now</a>
+                    {% else %}
+                    <div style="font-size: 5rem; color: var(--danger);"><i class="bi bi-x-circle-fill"></i></div>
+                    <h3 style="color: var(--danger);">Not Eligible</h3>
+                    {% for reason in result.reasons %}
+                    <p class="text-muted">{{ reason }}</p>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                <hr>
+                <a href="{{ url_for('voter.eligibility_checker') }}" class="btn btn-outline-primary"><i class="bi bi-arrow-left"></i> Check Again</a>
+            </div>
+            {% else %}
+            <div class="form-card">
+                <h5 class="mb-4" style="color: var(--primary);">Check Your Eligibility</h5>
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">Date of Birth *</label>
+                        <input type="date" class="form-control" name="dob" required max="2008-01-01">
+                        <small class="text-muted">You must be 18 years or older</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Are you a citizen of India? *</label>
+                        <select class="form-select" name="citizenship" required>
+                            <option value="">Select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Are you already registered as a voter?</label>
+                        <select class="form-select" name="existing_registration">
+                            <option value="">Select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                            <option value="unsure">Not sure</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Current Residence *</label>
+                        <input type="text" class="form-control" name="residence" required placeholder="Enter your current address">
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom"><i class="bi bi-check-circle"></i> Check Eligibility</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

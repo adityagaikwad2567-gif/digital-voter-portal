@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Digital Voter Services Portal{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Academic Disclaimer Banner -->
+    <div class="disclaimer-banner" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        {{ academic_disclaimer }}
+    </div>
+
+    {% block navbar %}
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top" role="navigation" aria-label="Main navigation">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.home') }}">
+                <i class="bi bi-person-check-fill brand-icon"></i>
+                Digital Voter Services
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.home') }}">
+                            <i class="bi bi-house"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-lines-fill"></i> Voter Services
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('voter.new_registration') }}"><i class="bi bi-person-plus"></i> New Registration</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('voter.search_electoral_roll') }}"><i class="bi bi-search"></i> Search Electoral Roll</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('voter.polling_station_search') }}"><i class="bi bi-geo-alt"></i> Find Polling Station</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('voter.digital_card') }}"><i class="bi bi-credit-card"></i> Digital Voter Card</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('voter.update_correction') }}"><i class="bi bi-pencil-square"></i> Update / Correction</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('voter.address_transfer') }}"><i class="bi bi-arrow-left-right"></i> Transfer Address</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('voter.track_application') }}"><i class="bi bi-clipboard-check"></i> Track Application</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('voter.eligibility_checker') }}"><i class="bi bi-check-circle"></i> Eligibility Checker</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-calendar-election"></i> Elections
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('elections.list_elections') }}"><i class="bi bi-list-check"></i> All Elections</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('elections.schedule') }}"><i class="bi bi-calendar3"></i> Election Schedule</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('elections.candidates_list') }}"><i class="bi bi-people"></i> Candidates</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('elections.results_list') }}"><i class="bi bi-bar-chart"></i> Results</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-check2-square"></i> Voting
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('voting.index') }}"><i class="bi bi-box-arrow-in-right"></i> Online Voting</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('voting.active_elections') }}"><i class="bi bi-broadcast"></i> Active Elections</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('voting.status') }}"><i class="bi bi-info-circle"></i> Voting Status</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('voting.history') }}"><i class="bi bi-clock-history"></i> Voting History</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-info-circle"></i> Information
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('info.how_to_vote') }}"><i class="bi bi-guide"></i> How to Vote</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('info.eligibility') }}"><i class="bi bi-check-circle"></i> Eligibility</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('info.documents') }}"><i class="bi bi-file-earmark"></i> Documents Required</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('info.faq') }}"><i class="bi bi-question-circle"></i> FAQs</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('info.contact') }}"><i class="bi bi-headset"></i> Contact / Help</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <!-- Notifications -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('voter.profile') }}" title="Notifications">
+                            <i class="bi bi-bell"></i>
+                            {% if unread_notifications > 0 %}
+                            <span class="nav-badge">{{ unread_notifications }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% if current_user.role == 'ADMIN' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Admin
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> {{ current_user.name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('voter.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('voter.profile') }}"><i class="bi bi-person"></i> My Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.register') }}">
+                            <i class="bi bi-person-plus"></i> Register
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <!-- Language Selector -->
+                <select id="langSelect" class="form-select form-select-sm ms-2" style="width: auto;" aria-label="Language">
+                    <option value="en" {% if request.cookies.get('lang') == 'en' %}selected{% endif %}>English</option>
+                    <option value="hi" {% if request.cookies.get('lang') == 'hi' %}selected{% endif %}>हिन्दी</option>
+                    <option value="mr" {% if request.cookies.get('lang') == 'mr' %}selected{% endif %}>मराठी</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+    {% endblock %}
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages" aria-live="polite">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block footer %}
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5><i class="bi bi-person-check-fill"></i> Digital Voter Services</h5>
+                    <p class="mb-2">{{ academic_disclaimer }}</p>
+                    <p style="font-size: 0.85rem; opacity: 0.7;">
+                        This is an academic project developed by Aditya Gaikwad and Aditi Naik 
+                        as part of the BCA Second Year curriculum.
+                    </p>
+                </div>
+                <div class="col-lg-2 col-md-4 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{{ url_for('main.home') }}">Home</a></li>
+                        <li class="mb-2"><a href="{{ url_for('voter.new_registration') }}">Registration</a></li>
+                        <li class="mb-2"><a href="{{ url_for('voter.search_electoral_roll') }}">Search</a></li>
+                        <li class="mb-2"><a href="{{ url_for('elections.list_elections') }}">Elections</a></li>
+                        <li class="mb-2"><a href="{{ url_for('info.faq') }}">FAQs</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <h5>Voter Services</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{{ url_for('voter.polling_station_search') }}">Polling Station</a></li>
+                        <li class="mb-2"><a href="{{ url_for('voter.digital_card') }}">Digital Card</a></li>
+                        <li class="mb-2"><a href="{{ url_for('voter.update_correction') }}">Update Details</a></li>
+                        <li class="mb-2"><a href="{{ url_for('voter.track_application') }}">Track Application</a></li>
+                        <li class="mb-2"><a href="{{ url_for('grievances.submit') }}">Submit Grievance</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <h5>Contact</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="bi bi-envelope"></i> support@demo-voter.local</li>
+                        <li class="mb-2"><i class="bi bi-telephone"></i> 1800-DEMO-VOTE</li>
+                        <li class="mb-2"><i class="bi bi-geo-alt"></i> Demo City, Maharashtra, India</li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="{{ url_for('info.about') }}" class="me-3" style="color: rgba(255,255,255,0.7);"><i class="bi bi-info-circle"></i></a>
+                        <a href="{{ url_for('info.privacy') }}" class="me-3" style="color: rgba(255,255,255,0.7);"><i class="bi bi-shield-lock"></i></a>
+                        <a href="{{ url_for('info.terms') }}" style="color: rgba(255,255,255,0.7);"><i class="bi bi-file-text"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Digital Voter Services Portal — Academic Demonstration Project</p>
+                <p style="font-size: 0.8rem; opacity: 0.6;">Students: Aditya Gaikwad & Aditi Naik | BCA 2nd Year | Waterfall Model</p>
+            </div>
+        </div>
+    </footer>
+    {% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

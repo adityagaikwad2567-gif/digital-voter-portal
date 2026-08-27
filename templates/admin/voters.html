@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Manage Voters — Admin{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-people"></i> Voter Management</h2>
+        <a href="{{ url_for('admin.add_voter') }}" class="btn btn-primary"><i class="bi bi-person-plus"></i> Add Voter</a>
+    </div>
+
+    <!-- Search -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Search by name, email, or voter ID..." value="{{ request.args.get('search', '') }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="active" {{ 'selected' if request.args.get('status') == 'active' }}>Active</option>
+                        <option value="inactive" {{ 'selected' if request.args.get('status') == 'inactive' }}>Inactive</option>
+                        <option value="pending" {{ 'selected' if request.args.get('status') == 'pending' }}>Pending</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+                </div>
+                <div class="col-auto">
+                    <a href="{{ url_for('admin.voters') }}" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Voters Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Voter ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>District</th>
+                            <th>Status</th>
+                            <th>Registered</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if voters %}
+                        {% for voter in voters %}
+                        <tr>
+                            <td>{{ voter.id }}</td>
+                            <td><code>{{ voter.voter_id }}</code></td>
+                            <td>{{ voter.name }}</td>
+                            <td>{{ voter.email }}</td>
+                            <td>{{ voter.district or '-' }}</td>
+                            <td><span class="badge bg-{{ 'success' if voter.status == 'active' else 'secondary' }}">{{ voter.status }}</span></td>
+                            <td>{{ voter.created_at|format_date('%d %b %Y') }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('admin.view_voter', user_id=voter.id) }}" class="btn btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ url_for('admin.edit_voter', user_id=voter.id) }}" class="btn btn-outline-warning" title="Edit"><i class="bi bi-pencil"></i></a>
+                                    <form method="POST" action="{{ url_for('admin.deactivate_voter', user_id=voter.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to toggle this voter status?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Toggle Status"><i class="bi bi-person-x"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr><td colspan="8" class="text-center text-muted py-4">No voters found</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Registration Step 4 — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-person-plus"></i> New Voter Registration — Final Step</h2>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between mb-4">
+                <div class="text-center flex-fill"><div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;background:#28a745;color:#fff;font-weight:700;"><i class="bi bi-check"></i></div><div class="small mt-1 text-muted">Personal</div></div>
+                <div class="text-center flex-fill"><div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;background:#28a745;color:#fff;font-weight:700;"><i class="bi bi-check"></i></div><div class="small mt-1 text-muted">Contact</div></div>
+                <div class="text-center flex-fill"><div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;background:#28a745;color:#fff;font-weight:700;"><i class="bi bi-check"></i></div><div class="small mt-1 text-muted">Address</div></div>
+                <div class="text-center flex-fill"><div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;background:var(--primary);color:#fff;font-weight:700;">4</div><div class="small mt-1 fw-bold">Submit</div></div>
+            </div>
+
+            <div class="form-card">
+                <h5 class="mb-4" style="color: var(--primary);"><i class="bi bi-file-earmark-check"></i> Step 4: Identity & Declaration</h5>
+                
+                <!-- Review -->
+                <div class="alert alert-info mb-4">
+                    <h6><i class="bi bi-info-circle"></i> Review Your Information</h6>
+                    <div class="row mt-2" style="font-size: 0.9rem;">
+                        <div class="col-sm-6"><strong>Name:</strong> {{ data.full_name }}</div>
+                        <div class="col-sm-6"><strong>DOB:</strong> {{ data.dob }}</div>
+                        <div class="col-sm-6"><strong>Gender:</strong> {{ data.gender }}</div>
+                        <div class="col-sm-6"><strong>Mobile:</strong> {{ data.mobile }}</div>
+                        <div class="col-sm-6"><strong>Email:</strong> {{ data.email }}</div>
+                        <div class="col-sm-6"><strong>State:</strong> {{ data.state }}</div>
+                        <div class="col-sm-6"><strong>District:</strong> {{ data.district }}</div>
+                        <div class="col-sm-6"><strong>Constituency:</strong> {{ data.constituency }}</div>
+                    </div>
+                </div>
+
+                <form method="POST" class="step-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="step" value="4">
+                    <input type="hidden" name="full_name" value="{{ data.full_name|default('') }}">
+                    <input type="hidden" name="dob" value="{{ data.dob|default('') }}">
+                    <input type="hidden" name="gender" value="{{ data.gender|default('') }}">
+                    <input type="hidden" name="mobile" value="{{ data.mobile|default('') }}">
+                    <input type="hidden" name="email" value="{{ data.email|default('') }}">
+                    <input type="hidden" name="address" value="{{ data.address|default('') }}">
+                    <input type="hidden" name="state" value="{{ data.state|default('') }}">
+                    <input type="hidden" name="district" value="{{ data.district|default('') }}">
+                    <input type="hidden" name="constituency" value="{{ data.constituency|default('') }}">
+                    <input type="hidden" name="pincode" value="{{ data.pincode|default('') }}">
+
+                    <div class="mb-3">
+                        <label for="id_type" class="form-label">Identity Document Type *</label>
+                        <select class="form-select" id="id_type" name="id_type" required>
+                            <option value="">Select Document Type</option>
+                            <option value="aadhaar">Aadhaar Card</option>
+                            <option value="pan">PAN Card</option>
+                            <option value="passport">Passport</option>
+                            <option value="driving_license">Driving License</option>
+                            <option value="ration_card">Ration Card</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_number" class="form-label">Document Reference Number *</label>
+                        <input type="text" class="form-control" id="id_number" name="id_number" required placeholder="Enter document reference number">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="declaration" name="declaration" value="yes" required>
+                        <label class="form-check-label" for="declaration">
+                            I hereby declare that the information provided is correct to the best of my knowledge. 
+                            This is an academic demonstration application and not a submission to any official government authority.
+                        </label>
+                    </div>
+                    <div class="alert alert-warning" style="font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        This is an academic demonstration application. The generated reference number is for demonstration purposes only and does not constitute an official government application.
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('voter.new_registration') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+                        <button type="submit" class="btn btn-accent btn-lg"><i class="bi bi-send"></i> Submit Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

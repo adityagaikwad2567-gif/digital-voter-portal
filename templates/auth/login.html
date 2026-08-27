@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Login — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-box-arrow-in-right"></i> Login</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li class="breadcrumb-item active">Login</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="form-card">
+                <h4 class="text-center mb-4" style="color: var(--primary);">Sign In to Your Account</h4>
+                <form method="POST" action="{{ url_for('auth.login') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required autofocus>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                        </div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">Remember me</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom w-100 mb-3">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </button>
+                </form>
+                <div class="text-center">
+                    <p class="mb-1">Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+                    <hr>
+                    <div class="card p-3 mt-3" style="background: var(--bg-light); border-radius: var(--radius);">
+                        <h6 class="text-muted mb-2"><i class="bi bi-info-circle"></i> Demo Credentials</h6>
+                        <small>
+                            <strong>Admin:</strong> admin@demo.local / Admin@12345<br>
+                            <strong>Voter:</strong> aditya@demo.local / Demo@12345
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}FAQ — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-question-circle"></i> Frequently Asked Questions</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item active">FAQ</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#faq1">Who can register on this portal?</button></h2>
+                    <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">Any person who is 18 years or older and a citizen of India can register in this academic demonstration system. This is not an official government portal.</div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq2">How can I search my voter information?</button></h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">Go to <strong>Voter Services > Search Electoral Roll</strong>. You can search by name, demo voter ID, or mobile number using demonstration data.</div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq3">How can I update my information?</button></h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">Navigate to <strong>Voter Services > Update / Correction</strong> and submit a correction request with the required details. You will receive a reference number for tracking.</div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq4">How do I find my polling station?</button></h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">Use <strong>Voter Services > Find Polling Station</strong>. Search by your demo voter ID, name, district, or constituency to find your assigned demo polling station.</div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq5">What is a digital voter card?</button></h2>
+                    <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">The digital voter card is a demonstration-only digital representation of voter information. It is <strong>not an official government ID</strong> and cannot be used for official purposes.</div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq6">How does the academic voting system work?</button></h2>
+                    <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">When elections are active, registered voters can log in, view candidates, select their preferred candidate, and submit their vote. Duplicate voting is prevented and votes are final once submitted.</div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq7">Can I vote twice?</button></h2>
+                    <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">No. The system enforces <strong>one vote per voter per election</strong> at both the application and database levels. Once you cast a vote, you cannot vote again in the same election.</div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq8">What happens after submitting a vote?</button></h2>
+                    <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">After submitting, you will see a confirmation page with a vote reference code. Your vote is securely recorded in the system. For completed elections, results with charts are displayed.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

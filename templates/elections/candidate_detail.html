@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ candidate.name }} — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2>{{ candidate.name }}</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item"><a href="{{ url_for('elections.candidates_list') }}">Candidates</a></li><li class="breadcrumb-item active">Profile</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-custom">
+                <div class="card-body text-center">
+                    <div class="candidate-avatar mx-auto mb-3" style="font-size: 3rem;">{{ candidate.symbol or '?' }}</div>
+                    <h3>{{ candidate.name }}</h3>
+                    <p class="text-muted">{{ candidate.party_name or 'Independent' }}</p>
+                    <hr>
+                    <div class="row text-start" style="font-size: 0.95rem;">
+                        <div class="col-sm-6 mb-2"><strong>Election:</strong> {{ candidate.election_name }}</div>
+                        <div class="col-sm-6 mb-2"><strong>Party/Group:</strong> {{ candidate.party_name or 'Independent' }}</div>
+                        <div class="col-sm-6 mb-2"><strong>Symbol:</strong> {{ candidate.symbol or 'N/A' }}</div>
+                    </div>
+                    {% if candidate.description %}
+                    <hr>
+                    <h5 class="text-start">Manifesto / Description</h5>
+                    <p class="text-start text-muted">{{ candidate.description }}</p>
+                    {% endif %}
+                    <div class="mt-4">
+                        <a href="{{ url_for('elections.candidates_list') }}" class="btn btn-outline-primary"><i class="bi bi-arrow-left"></i> Back to Candidates</a>
+                        {% if candidate.election_status == 'Active' and current_user.is_authenticated %}
+                        <a href="{{ url_for('voting.cast', election_id=candidate.election_id) }}" class="btn btn-success"><i class="bi bi-check2-square"></i> Vote in This Election</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

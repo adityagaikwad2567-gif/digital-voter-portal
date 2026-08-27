@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Edit Election — Admin{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2><i class="bi bi-pencil"></i> Edit Election</h2>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Election Name *</label>
+                        <input type="text" name="name" class="form-control" value="{{ election.name }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Election Type *</label>
+                        <select name="election_type" class="form-select" required>
+                            {% for t in ['Student Council', 'Class Representative', 'Club Election', 'Departmental', 'Other'] %}
+                            <option value="{{ t }}" {{ 'selected' if election.election_type == t }}>{{ t }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Constituency</label>
+                        <input type="text" name="constituency" class="form-control" value="{{ election.constituency or '' }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3">{{ election.description or '' }}</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Start Date & Time *</label>
+                        <input type="datetime-local" name="start_time" class="form-control" value="{{ election.start_time|format_date('%Y-%m-%dT%H:%M') }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">End Date & Time *</label>
+                        <input type="datetime-local" name="end_time" class="form-control" value="{{ election.end_time|format_date('%Y-%m-%dT%H:%M') }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            {% for s in ['Draft', 'Upcoming', 'Active', 'Completed', 'Cancelled'] %}
+                            <option value="{{ s }}" {{ 'selected' if election.status == s }}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Save Changes</button>
+                    <a href="{{ url_for('admin.elections_list') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

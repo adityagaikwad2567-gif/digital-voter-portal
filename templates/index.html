@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Home — Digital Voter Services Portal{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container position-relative" style="z-index: 1;">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <h1>Your Vote. Your Voice. Your Right.</h1>
+                <p class="lead">
+                    Access voter-service demonstrations, election information, voter registration 
+                    workflows, application tracking, and controlled online voting features through 
+                    one secure academic platform.
+                </p>
+                <div class="mt-4">
+                    <a href="{{ url_for('voter.new_registration') }}" class="btn btn-accent hero-btn">
+                        <i class="bi bi-person-plus"></i> Explore Voter Services
+                    </a>
+                    <a href="{{ url_for('voter.search_electoral_roll') }}" class="btn btn-outline-light hero-btn">
+                        <i class="bi bi-search"></i> Search Voter
+                    </a>
+                    <a href="{{ url_for('elections.list_elections') }}" class="btn btn-outline-light hero-btn">
+                        <i class="bi bi-calendar-election"></i> View Elections
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5 text-center mt-4 mt-lg-0">
+                <div style="font-size: 8rem; opacity: 0.15;">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Service Cards -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="section-title center text-center">Our Services</h2>
+        <p class="text-center text-muted mb-5">Explore our comprehensive voter services and election management features</p>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('voter.new_registration') }}" class="service-card">
+                    <div class="icon-circle">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    <h5>New Voter Registration</h5>
+                    <p>Apply to register as a new voter</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('voter.search_electoral_roll') }}" class="service-card">
+                    <div class="icon-circle">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    <h5>Search Electoral Roll</h5>
+                    <p>Check whether a demo voter record exists</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('voter.polling_station_search') }}" class="service-card">
+                    <div class="icon-circle">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <h5>Find Polling Station</h5>
+                    <p>Find the assigned demonstration polling station</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('voter.digital_card') }}" class="service-card">
+                    <div class="icon-circle">
+                        <i class="bi bi-credit-card-fill"></i>
+                    </div>
+                    <h5>Digital Voter Card</h5>
+                    <p>View/download a demo digital voter card</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('voter.update_correction') }}" class="service-card">
+                    <div class="icon-circle">
+                        <i class="bi bi-pencil-fill"></i>
+                    </div>
+                    <h5>Update Details</h5>
+                    <p>Submit a correction or address-change request</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('voter.track_application') }}" class="service-card">
+                    <div class="icon-circle">
+                        <i class="bi bi-clipboard-check-fill"></i>
+                    </div>
+                    <h5>Track Application</h5>
+                    <p>Track status of submitted applications</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('elections.list_elections') }}" class="service-card">
+                    <div class="icon-circle">
+                        <i class="bi bi-calendar-event-fill"></i>
+                    </div>
+                    <h5>Election Information</h5>
+                    <p>View election schedules and candidates</p>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('voting.index') }}" class="service-card">
+                    <div class="icon-circle">
+                        <i class="bi bi-check2-square"></i>
+                    </div>
+                    <h5>Online Voting</h5>
+                    <p>Participate in a controlled academic election</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5" style="background: var(--bg-light);">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h2 class="section-title">Why This Portal?</h2>
+                <p class="text-muted">
+                    This Digital Voter Services & Online Voting Portal is designed as a comprehensive 
+                    academic demonstration project showcasing modern web development practices for 
+                    election management systems.
+                </p>
+                <div class="row mt-4">
+                    <div class="col-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-shield-check text-primary me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <h6 class="mb-0">Secure Voting</h6>
+                                <small class="text-muted">Duplicate vote prevention</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-phone text-primary me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <h6 class="mb-0">Mobile Ready</h6>
+                                <small class="text-muted">Fully responsive design</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-clock-history text-primary me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <h6 class="mb-0">Live Tracking</h6>
+                                <small class="text-muted">Real-time application status</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-translate text-primary me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <h6 class="mb-0">Multilingual</h6>
+                                <small class="text-muted">English, Hindi, Marathi</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="p-4">
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <div class="dash-card success">
+                                <div class="dash-value">5+</div>
+                                <div class="dash-label">Demo Voters</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="dash-card info">
+                                <div class="dash-value">2</div>
+                                <div class="dash-label">Elections</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="dash-card warning">
+                                <div class="dash-value">8+</div>
+                                <div class="dash-label">Services</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="dash-card danger">
+                                <div class="dash-value">4</div>
+                                <div class="dash-label">Polling Stations</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="dash-card">
+                                <div class="dash-value">3</div>
+                                <div class="dash-label">Languages</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="dash-card success">
+                                <div class="dash-value">100%</div>
+                                <div class="dash-label">Working</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff;">
+    <div class="container text-center">
+        <h2 class="mb-3">Ready to Get Started?</h2>
+        <p class="mb-4 opacity-75">Register as a voter, explore elections, and experience the online voting system.</p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-accent hero-btn me-2">
+            <i class="bi bi-person-plus"></i> Register Now
+        </a>
+        <a href="{{ url_for('info.how_to_vote') }}" class="btn btn-outline-light hero-btn">
+            <i class="bi bi-guide"></i> Learn How to Vote
+        </a>
+    </div>
+</section>
+{% endblock %}

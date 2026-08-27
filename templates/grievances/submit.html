@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Submit Grievance — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-exclamation-triangle"></i> Submit Grievance</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item active">Submit Grievance</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <h5 class="mb-4" style="color: var(--primary);">Submit a Grievance</h5>
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">Category *</label>
+                        <select class="form-select" name="category" required>
+                            <option value="">Select category</option>
+                            <option value="voter_registration">Voter Registration</option>
+                            <option value="application">Application</option>
+                            <option value="voter_information">Voter Information</option>
+                            <option value="polling_station">Polling Station</option>
+                            <option value="digital_card">Digital Card</option>
+                            <option value="election">Election</option>
+                            <option value="technical_issue">Technical Issue</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject *</label>
+                        <input type="text" class="form-control" name="subject" required placeholder="Brief subject of your grievance">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description *</label>
+                        <textarea class="form-control" name="description" rows="5" required placeholder="Describe your grievance in detail"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contact Information</label>
+                        <input type="text" class="form-control" name="contact_info" placeholder="Phone or email for follow-up">
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom"><i class="bi bi-send"></i> Submit Grievance</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

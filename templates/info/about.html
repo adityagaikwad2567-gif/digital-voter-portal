@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}About — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-info-circle"></i> About the Project</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item active">About</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-custom mb-4">
+                <div class="card-body">
+                    <h4 style="color: var(--primary);">Digital Voter Services & Online Voting Portal</h4>
+                    <p class="text-muted">
+                        This Digital Voter Services & Online Voting Portal is an academic project developed by 
+                        Aditya Gaikwad and Aditi Naik as part of the BCA Second Year curriculum. It demonstrates 
+                        the types of voter-management services commonly associated with electoral systems, including 
+                        voter registration, electoral-roll search, polling-station information, digital voter-card 
+                        display, correction requests, application tracking, election information, controlled online 
+                        voting, results, notifications, and administration.
+                    </p>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> This is an <strong>academic demonstration project</strong>. 
+                        It is not an official government website and should not be used for any official electoral purposes.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team -->
+            <h5 class="mb-3" style="color: var(--primary);">Team Members</h5>
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100" style="border-radius: var(--radius-lg); text-align: center;">
+                        <div class="card-body">
+                            <div class="candidate-avatar mx-auto mb-3">AG</div>
+                            <h5>Aditya Gaikwad</h5>
+                            <p class="text-muted">BCA 2nd Year</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100" style="border-radius: var(--radius-lg); text-align: center;">
+                        <div class="card-body">
+                            <div class="candidate-avatar mx-auto mb-3">AN</div>
+                            <h5>Aditi Naik</h5>
+                            <p class="text-muted">BCA 2nd Year</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technology -->
+            <div class="card-custom mb-4">
+                <div class="card-header"><i class="bi bi-code-slash"></i> Technology</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4"><span class="badge bg-primary p-2 w-100">Python / Flask</span></div>
+                        <div class="col-md-4"><span class="badge bg-info p-2 w-100">MySQL</span></div>
+                        <div class="col-md-4"><span class="badge bg-success p-2 w-100">HTML5 / CSS3 / JS</span></div>
+                        <div class="col-md-4"><span class="badge bg-warning text-dark p-2 w-100">Bootstrap 5</span></div>
+                        <div class="col-md-4"><span class="badge bg-secondary p-2 w-100">Chart.js</span></div>
+                        <div class="col-md-4"><span class="badge bg-primary p-2 w-100">Bootstrap Icons</span></div>
+                    </div>
+                    <div class="mt-3">
+                        <strong>Methodology:</strong> <span class="status-badge active">Waterfall Model</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

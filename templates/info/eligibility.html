@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Eligibility — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-check-circle"></i> Voter Eligibility</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item active">Eligibility</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-custom mb-4">
+                <div class="card-body">
+                    <h5 style="color: var(--primary);">Who Can Register as a Voter?</h5>
+                    <p class="text-muted">In this academic demonstration system, the following eligibility criteria apply:</p>
+                    <ul style="font-size: 0.95rem;">
+                        <li>You must be <strong>18 years of age or older</strong> (as of January 1st of the current year).</li>
+                        <li>You must be a <strong>citizen of India</strong> (declaration-based in this demo).</li>
+                        <li>You must <strong>not already be registered</strong> in the demo electoral roll.</li>
+                        <li>You must provide a <strong>valid residential address</strong> within a recognized demo constituency.</li>
+                    </ul>
+                    <div class="alert alert-info" style="font-size: 0.85rem;">
+                        <i class="bi bi-info-circle"></i> These are demonstration rules for academic purposes only and do not represent actual Indian electoral law.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-custom">
+                <div class="card-body">
+                    <h5 style="color: var(--primary);">Check Your Eligibility</h5>
+                    <p class="text-muted">Use our interactive eligibility checker to determine if you qualify.</p>
+                    <a href="{{ url_for('voter.eligibility_checker') }}" class="btn btn-primary-custom"><i class="bi bi-check-circle"></i> Open Eligibility Checker</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

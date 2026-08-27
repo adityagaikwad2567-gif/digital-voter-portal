@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Voting History — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-clock-history"></i> Voting History</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item active">Voting History</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card-custom">
+                <div class="card-header"><i class="bi bi-clock-history"></i> Your Voting History</div>
+                <div class="card-body p-0">
+                    {% if vote_history %}
+                    <div class="table-responsive">
+                        <table class="table table-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Election</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Reference Code</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vote in vote_history %}
+                                <tr>
+                                    <td><strong>{{ vote.election_name }}</strong><br><small class="text-muted">{{ vote.election_status }}</small></td>
+                                    <td>{{ vote.voted_at|format_date('%d %B %Y, %H:%M') }}</td>
+                                    <td><span class="status-badge active">Recorded</span></td>
+                                    <td><code>{{ vote.reference_code }}</code></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-clock-history" style="font-size: 3rem; color: var(--text-muted);"></i>
+                        <p class="mt-3 text-muted">You haven't voted in any elections yet.</p>
+                        <a href="{{ url_for('voting.active_elections') }}" class="btn btn-primary-custom"><i class="bi bi-broadcast"></i> View Active Elections</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="alert alert-info mt-3" style="font-size: 0.85rem;">
+                <i class="bi bi-shield-lock"></i> Voting history does not expose ballot choices to maintain ballot secrecy.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

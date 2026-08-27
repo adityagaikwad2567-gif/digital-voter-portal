@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Elections — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-calendar-election"></i> Election Information</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li class="breadcrumb-item active">Elections</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="container py-4">
+    <!-- Tabs -->
+    <ul class="nav nav-tabs-custom mb-4" role="tablist">
+        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#active"><i class="bi bi-broadcast"></i> Active ({{ active_elections|length }})</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#upcoming"><i class="bi bi-clock"></i> Upcoming ({{ upcoming_elections|length }})</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#completed"><i class="bi bi-check-circle"></i> Completed ({{ completed_elections|length }})</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Active Elections -->
+        <div class="tab-pane fade show active" id="active">
+            {% if active_elections %}
+            {% for election in active_elections %}
+            <div class="election-card active">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5>{{ election.name }}</h5>
+                        <p class="text-muted mb-1">{{ election.description }}</p>
+                        <div class="d-flex gap-3 flex-wrap" style="font-size: 0.85rem;">
+                            <span><i class="bi bi-tag"></i> {{ election.election_type }}</span>
+                            <span><i class="bi bi-geo-alt"></i> {{ election.constituency }}</span>
+                            <span><i class="bi bi-calendar"></i> {{ election.start_time|format_date('%d %b %Y') }} - {{ election.end_time|format_date('%d %b %Y') }}</span>
+                        </div>
+                    </div>
+                    <span class="status-badge active">Active</span>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('elections.election_detail', election_id=election.id) }}" class="btn btn-sm btn-primary">View Details</a>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('voting.cast', election_id=election.id) }}" class="btn btn-sm btn-success">Vote Now</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center py-5"><i class="bi bi-broadcast" style="font-size: 3rem; color: var(--text-muted);"></i><p class="mt-3 text-muted">No active elections at the moment.</p></div>
+            {% endif %}
+        </div>
+
+        <!-- Upcoming -->
+        <div class="tab-pane fade" id="upcoming">
+            {% if upcoming_elections %}
+            {% for election in upcoming_elections %}
+            <div class="election-card upcoming">
+                <h5>{{ election.name }}</h5>
+                <p class="text-muted mb-1">{{ election.description }}</p>
+                <div class="d-flex gap-3 flex-wrap" style="font-size: 0.85rem;">
+                    <span><i class="bi bi-tag"></i> {{ election.election_type }}</span>
+                    <span><i class="bi bi-calendar"></i> {{ election.start_time|format_date('%d %b %Y') }} - {{ election.end_time|format_date('%d %b %Y') }}</span>
+                </div>
+                <div class="mt-2"><span class="status-badge upcoming">Upcoming</span></div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center py-5"><p class="text-muted">No upcoming elections.</p></div>
+            {% endif %}
+        </div>
+
+        <!-- Completed -->
+        <div class="tab-pane fade" id="completed">
+            {% if completed_elections %}
+            {% for election in completed_elections %}
+            <div class="election-card completed">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5>{{ election.name }}</h5>
+                        <p class="text-muted mb-1">{{ election.description }}</p>
+                        <div style="font-size: 0.85rem;"><span><i class="bi bi-calendar"></i> {{ election.start_time|format_date('%d %b %Y') }} - {{ election.end_time|format_date('%d %b %Y') }}</span></div>
+                    </div>
+                    <span class="status-badge completed">Completed</span>
+                </div>
+                <div class="mt-2">
+                    <a href="{{ url_for('elections.results_detail', election_id=election.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-bar-chart"></i> View Results</a>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center py-5"><p class="text-muted">No completed elections.</p></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

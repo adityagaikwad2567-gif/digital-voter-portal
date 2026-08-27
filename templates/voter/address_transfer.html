@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Transfer Address — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-arrow-left-right"></i> Shift My Voting Address</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li class="breadcrumb-item active">Address Transfer</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {% if profile %}
+            <div class="alert alert-info mb-4">
+                <h6><i class="bi bi-info-circle"></i> Current Address</h6>
+                <p class="mb-0">{{ profile.address }}, {{ profile.district }}, {{ profile.state }} - {{ profile.pincode }}</p>
+            </div>
+            {% endif %}
+            <div class="form-card">
+                <h5 class="mb-4" style="color: var(--primary);">New Address Details</h5>
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">New Full Address *</label>
+                        <textarea class="form-control" name="new_address" rows="3" required placeholder="Enter your new address"></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">New State *</label>
+                            <select class="form-select" name="new_state" required>
+                                <option value="">Select State</option>
+                                <option value="Maharashtra">Maharashtra</option>
+                                <option value="Karnataka">Karnataka</option>
+                                <option value="Delhi">Delhi</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">New District *</label>
+                            <input type="text" class="form-control" name="new_district" required placeholder="District">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">New Constituency *</label>
+                            <input type="text" class="form-control" name="new_constituency" required placeholder="Constituency">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">New Pincode *</label>
+                            <input type="text" class="form-control" name="new_pincode" required pattern="[0-9]{6}" placeholder="6-digit pincode">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Reason for Transfer</label>
+                            <input type="text" class="form-control" name="reason" placeholder="e.g., Job relocation">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom"><i class="bi bi-send"></i> Submit Transfer Request</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Track Grievance — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-search"></i> Track Grievance</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item active">Track Grievance</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card mb-4">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-9">
+                            <label class="form-label">Grievance Reference Number</label>
+                            <input type="text" class="form-control" name="reference_number" placeholder="e.g., GRV-2026-000001" required value="{{ request.form.get('reference_number', '') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary-custom w-100"><i class="bi bi-search"></i> Track</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            {% if grievance %}
+            <div class="card-custom">
+                <div class="card-header d-flex justify-content-between">
+                    <span><i class="bi bi-exclamation-circle"></i> Grievance Details</span>
+                    <span class="status-badge {{ grievance.status|lower|replace(' ', '-') }}">{{ grievance.status }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row" style="font-size: 0.9rem;">
+                        <div class="col-sm-6 mb-2"><strong>Reference:</strong> {{ grievance.reference_number }}</div>
+                        <div class="col-sm-6 mb-2"><strong>Category:</strong> {{ grievance.category|replace('_', ' ')|title }}</div>
+                        <div class="col-sm-6 mb-2"><strong>Subject:</strong> {{ grievance.subject }}</div>
+                        <div class="col-sm-6 mb-2"><strong>Submitted:</strong> {{ grievance.created_at|format_date('%d %B %Y') }}</div>
+                        <div class="col-12 mt-2"><strong>Description:</strong><br>{{ grievance.description }}</div>
+                        <div class="col-12 mt-2"><strong>Last Updated:</strong> {{ grievance.updated_at|format_date('%d %B %Y, %H:%M') }}</div>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Status Timeline</h6>
+                    <div class="timeline">
+                        {% set statuses = ['Submitted', 'In Progress', 'Resolved', 'Closed'] %}
+                        {% set current_idx = statuses.index(grievance.status) if grievance.status in statuses else -1 %}
+                        {% for s in statuses %}
+                        <div class="timeline-item {% if loop.index0 < current_idx %}completed{% elif loop.index0 == current_idx %}active{% endif %}">
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ s }}</strong>
+                                    {% if loop.index0 < current_idx %}
+                                    <span class="badge bg-success">Done</span>
+                                    {% elif loop.index0 == current_idx %}
+                                    <span class="badge bg-warning text-dark">Current</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Pending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

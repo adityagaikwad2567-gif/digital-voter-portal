@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Results: {{ results.election.name }} — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-trophy"></i> {{ results.election.name }} — Results</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item"><a href="{{ url_for('elections.results_list') }}">Results</a></li><li class="breadcrumb-item active">Detail</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- Winner -->
+        <div class="col-lg-4">
+            <div class="card-custom">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2">WINNER</h6>
+                    {% if results.winner %}
+                    <div class="candidate-avatar mx-auto mb-2">{{ results.winner.symbol or '?' }}</div>
+                    <h4>{{ results.winner.name }}</h4>
+                    <p class="text-muted">{{ results.winner.party_name or 'Independent' }}</p>
+                    <h3 style="color: #28a745;">{{ results.winner.vote_count }} votes</h3>
+                    <p class="text-muted">{{ results.winner.percentage }}%</p>
+                    {% else %}
+                    <p class="text-muted">No votes cast.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="col-lg-8">
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="dash-card info">
+                        <div class="dash-value">{{ results.total_votes }}</div>
+                        <div class="dash-label">Total Votes</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dash-card success">
+                        <div class="dash-value">{{ results.candidates|length }}</div>
+                        <div class="dash-label">Candidates</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dash-card warning">
+                        <div class="dash-value">{{ results.election.status }}</div>
+                        <div class="dash-label">Status</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Table -->
+            <div class="card-custom">
+                <div class="card-header"><i class="bi bi-list-ol"></i> Vote Counts</div>
+                <div class="card-body p-0">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr><th>#</th><th>Candidate</th><th>Party</th><th>Votes</th><th>Percentage</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for c in results.candidates %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td><strong>{{ c.symbol or '' }} {{ c.name }}</strong></td>
+                                <td>{{ c.party_name or 'Independent' }}</td>
+                                <td><strong>{{ c.vote_count }}</strong></td>
+                                <td>{{ c.percentage }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="row g-3 mt-3">
+                <div class="col-md-6">
+                    <div class="card-custom">
+                        <div class="card-header">Vote Distribution</div>
+                        <div class="card-body"><canvas id="resultsBarChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-custom">
+                        <div class="card-header">Vote Share</div>
+                        <div class="card-body"><canvas id="resultsDoughnut"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info mt-4" style="font-size: 0.85rem;"><i class="bi bi-info-circle"></i> This is an academic demonstration. Results are from the demo voting system only.</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const names = [{% for c in results.candidates %}'{{ c.name }}'{% if not loop.last %},{% endif %}{% endfor %}];
+    const votes = [{% for c in results.candidates %}{{ c.vote_count }}{% if not loop.last %},{% endif %}{% endfor %}];
+    const colors = ['#1a3a6b', '#e8a838', '#28a745', '#dc3545', '#6f42c1', '#17a2b8'];
+    
+    new Chart(document.getElementById('resultsBarChart'), {
+        type: 'bar',
+        data: { labels: names, datasets: [{ label: 'Votes', data: votes, backgroundColor: colors.slice(0, names.length) }] },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+    
+    new Chart(document.getElementById('resultsDoughnut'), {
+        type: 'doughnut',
+        data: { labels: names, datasets: [{ data: votes, backgroundColor: colors.slice(0, names.length) }] },
+        options: { responsive: true }
+    });
+});
+</script>
+{% endblock %}

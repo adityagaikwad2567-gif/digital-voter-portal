@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-shield-lock"></i> Privacy Policy</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item active">Privacy Policy</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-custom">
+                <div class="card-body">
+                    <div class="alert alert-warning mb-4"><i class="bi bi-exclamation-triangle"></i> This is an academic demonstration project. No real personal data is collected, stored, or processed for official purposes.</div>
+                    <h5>Data Collection</h5>
+                    <p>This portal uses only fictional demonstration data. No real citizens' personal information is collected or processed.</p>
+                    <h5>Data Usage</h5>
+                    <p>All data entered into this system is used solely for demonstration purposes within the academic project.</p>
+                    <h5>Data Security</h5>
+                    <p>Passwords are hashed using Werkzeug's security utilities. SQL injection protection is enforced through parameterized queries. CSRF protection is enabled.</p>
+                    <h5>Third-Party Access</h5>
+                    <p>No data is shared with third parties. This is a standalone academic project.</p>
+                    <h5>Contact</h5>
+                    <p>For questions about privacy in this academic project, contact the project team through the <a href="{{ url_for('info.contact') }}">Contact page</a>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

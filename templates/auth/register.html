@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Register — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-person-plus"></i> Create Account</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li class="breadcrumb-item active">Register</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="form-card">
+                <h4 class="text-center mb-4" style="color: var(--primary);">Create Your Account</h4>
+                <form method="POST" action="{{ url_for('auth.register') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ name|default('') }}" required minlength="2" placeholder="Enter your full name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address *</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ email|default('') }}" required placeholder="Enter your email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="mobile" class="form-label">Mobile Number *</label>
+                        <input type="tel" class="form-control" id="mobile" name="mobile" value="{{ mobile|default('') }}" required pattern="[0-9]{10,}" placeholder="10-digit mobile number">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password *</label>
+                        <input type="password" class="form-control" id="password" name="password" required minlength="8" placeholder="Minimum 8 characters">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password *</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required placeholder="Re-enter password">
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom w-100 mb-3">
+                        <i class="bi bi-person-plus"></i> Create Account
+                    </button>
+                </form>
+                <div class="text-center">
+                    <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

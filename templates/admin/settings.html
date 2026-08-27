@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}System Settings — Admin{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2><i class="bi bi-gear"></i> System Settings</h2>
+    <p class="text-muted">Configure system parameters for the academic demonstration.</p>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">General Settings</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label class="form-label">System Name</label>
+                            <input type="text" name="system_name" class="form-control" value="Digital Voter Services & Online Voting Portal">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Registration Open</label>
+                            <select name="registration_open" class="form-select">
+                                <option value="1" {{ 'selected' if settings.get('registration_open', true) }}>Open</option>
+                                <option value="0" {{ 'selected' if not settings.get('registration_open', true) }}>Closed</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Voting Enabled</label>
+                            <select name="voting_enabled" class="form-select">
+                                <option value="1" {{ 'selected' if settings.get('voting_enabled', true) }}>Enabled</option>
+                                <option value="0" {{ 'selected' if not settings.get('voting_enabled', true) }}>Disabled</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Save Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Academic Disclaimer</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>Reminder:</strong> This system is an academic demonstration project. It is NOT connected to any official government database or election system. All data is fictional and for educational purposes only.
+                    </div>
+                    <p class="text-muted small">
+                        <strong>Project:</strong> Digital Voter Services & Online Voting Portal<br>
+                        <strong>Course:</strong> BCA Second Year<br>
+                        <strong>Students:</strong> Aditya Gaikwad & Aditi Naik<br>
+                        <strong>Methodology:</strong> Waterfall Model
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

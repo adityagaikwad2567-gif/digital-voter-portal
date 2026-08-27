@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Cast Vote — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-check2-square"></i> Cast Your Vote</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item"><a href="{{ url_for('voting.active_elections') }}">Elections</a></li><li class="breadcrumb-item active">Cast Vote</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-custom mb-4">
+                <div class="card-body">
+                    <h5 style="color: var(--primary);">{{ election.name }}</h5>
+                    <p class="text-muted">{{ election.election_type }} | {{ election.constituency }}</p>
+                    <div class="alert alert-warning" style="font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-triangle"></i> Select one candidate and proceed to confirmation. Your vote cannot be changed after submission.
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3 mb-4">
+                    {% for candidate in candidates %}
+                    <div class="col-md-4">
+                        <div class="candidate-select-card candidate-card" style="cursor: pointer;" onclick="this.querySelector('input[type=radio]').click(); document.querySelectorAll('.candidate-select-card').forEach(c=>c.classList.remove('selected')); this.classList.add('selected');">
+                            <input type="radio" name="candidate_id" value="{{ candidate.id }}" class="d-none" {% if loop.first %}checked{% endif %}>
+                            <div class="candidate-avatar mx-auto mb-2">{{ candidate.symbol or '?' }}</div>
+                            <h6>{{ candidate.name }}</h6>
+                            <small class="text-muted">{{ candidate.party_name or 'Independent' }}</small>
+                            {% if candidate.description %}
+                            <p class="mt-2" style="font-size: 0.8rem;">{{ candidate.description[:80] }}{% if candidate.description|length > 80 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="btn btn-primary-custom btn-lg"><i class="bi bi-arrow-right"></i> Proceed to Confirm</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

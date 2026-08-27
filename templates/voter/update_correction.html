@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Update / Correction — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-pencil-square"></i> Update Voter Details</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li class="breadcrumb-item active">Update / Correction</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="form-card">
+                <h5 class="mb-4" style="color: var(--primary);">Submit Correction Request</h5>
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">Correction Type *</label>
+                        <select class="form-select" name="correction_type" required>
+                            <option value="">Select correction type</option>
+                            <option value="name">Name Correction</option>
+                            <option value="dob">Date of Birth Correction</option>
+                            <option value="gender">Gender Correction</option>
+                            <option value="address">Address Correction</option>
+                            <option value="mobile">Mobile Number Update</option>
+                            <option value="email">Email Update</option>
+                            <option value="photo">Photo Update</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Current Value (if applicable)</label>
+                        <input type="text" class="form-control" name="current_value" placeholder="Enter current value">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New / Corrected Value *</label>
+                        <input type="text" class="form-control" name="new_value" required placeholder="Enter corrected value">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Correction</label>
+                        <textarea class="form-control" name="reason" rows="3" placeholder="Explain the reason for this correction"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom"><i class="bi bi-send"></i> Submit Correction Request</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

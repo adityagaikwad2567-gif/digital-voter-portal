@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Environment
+.env
+.env.local
+*.db
+*-shm
+*-wal
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project
+.freebuff/
+.freebuffpreview.log
+file
+digital-voter-portal/
+start_preview.py
+preview_server.py
+test_startup.py
+test_admin_routes.py
+test_fk_debug*.db
+test_voter_portal.db

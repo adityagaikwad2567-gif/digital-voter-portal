@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Election Schedule — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-calendar3"></i> Election Schedule</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item active">Schedule</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Generic Election Process Timeline -->
+            <div class="card-custom mb-4">
+                <div class="card-header"><i class="bi bi-diagram-3"></i> General Election Process</div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% set steps = [
+                            ('Election Announcement', 'Official announcement of the election with details.'),
+                            ('Nomination Period', 'Candidates file their nominations.'),
+                            ('Candidate Finalization', 'Nominations are verified and candidates finalized.'),
+                            ('Campaign Period', 'Candidates campaign and present their manifesto.'),
+                            ('Voting Day', 'Eligible voters cast their votes.'),
+                            ('Counting', 'Votes are counted under supervision.'),
+                            ('Result Declaration', 'Official results are announced.')
+                        ] %}
+                        {% for title, desc in steps %}
+                        <div class="timeline-item completed">
+                            <div class="timeline-content">
+                                <h6 class="mb-1">{{ title }}</h6>
+                                <p class="text-muted mb-0" style="font-size: 0.85rem;">{{ desc }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info" style="font-size: 0.9rem;">
+                <i class="bi bi-info-circle"></i> All dates shown are for demonstration purposes only. This is not an official election schedule.
+            </div>
+
+            <!-- Actual Elections -->
+            <h5 class="mt-4 mb-3">Scheduled Elections</h5>
+            {% for election in elections %}
+            <div class="election-card {{ election.status|lower }}">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5>{{ election.name }}</h5>
+                        <div class="d-flex gap-3 flex-wrap" style="font-size: 0.85rem;">
+                            <span><i class="bi bi-tag"></i> {{ election.election_type }}</span>
+                            <span><i class="bi bi-calendar"></i> {{ election.start_time|format_date('%d %b') }} - {{ election.end_time|format_date('%d %b %Y') }}</span>
+                        </div>
+                    </div>
+                    <span class="status-badge {{ election.status|lower }}">{{ election.status }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

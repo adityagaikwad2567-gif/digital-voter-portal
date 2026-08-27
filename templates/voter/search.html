@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Search Electoral Roll — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-search"></i> Search Your Name in Electoral Roll</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li class="breadcrumb-item active">Search Electoral Roll</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="form-card mb-4">
+                <!-- Search Type Tabs -->
+                <ul class="nav nav-tabs-custom mb-4" role="tablist">
+                    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#searchDetails"><i class="bi bi-person"></i> Search by Details</a></li>
+                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#searchVoterId"><i class="bi bi-credit-card"></i> Search by Voter ID</a></li>
+                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#searchMobile"><i class="bi bi-phone"></i> Search by Mobile</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- By Details -->
+                    <div class="tab-pane fade show active" id="searchDetails">
+                        <form method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="search_type" value="details">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Name</label>
+                                    <input type="text" class="form-control" name="name" placeholder="Enter name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">State</label>
+                                    <select class="form-select" name="state">
+                                        <option value="">All States</option>
+                                        <option value="Maharashtra">Maharashtra</option>
+                                        <option value="Karnataka">Karnataka</option>
+                                        <option value="Delhi">Delhi</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">District</label>
+                                    <input type="text" class="form-control" name="district" placeholder="District">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Constituency</label>
+                                    <input type="text" class="form-control" name="constituency" placeholder="Constituency">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Age</label>
+                                    <input type="number" class="form-control" name="age" min="18" max="120" placeholder="Age">
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary-custom"><i class="bi bi-search"></i> Search</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- By Voter ID -->
+                    <div class="tab-pane fade" id="searchVoterId">
+                        <form method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="search_type" value="voter_id">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label">Demo EPIC Number</label>
+                                    <input type="text" class="form-control" name="voter_id" placeholder="e.g., DEMO100001">
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary-custom w-100"><i class="bi bi-search"></i> Search</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- By Mobile -->
+                    <div class="tab-pane fade" id="searchMobile">
+                        <form method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="search_type" value="mobile">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label">Registered Mobile Number</label>
+                                    <input type="tel" class="form-control" name="mobile" placeholder="Enter mobile number">
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary-custom w-100"><i class="bi bi-search"></i> Search</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            {% if search_performed %}
+            <div class="card-custom">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-list-check"></i> Search Results</span>
+                    <span class="badge bg-primary">{{ results|length }} record(s) found</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if results %}
+                    <div class="row g-3 p-3">
+                        {% for voter in results %}
+                        <div class="col-md-6">
+                            <div class="card h-100" style="border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="candidate-avatar me-3" style="width:50px;height:50px;font-size:1.2rem;">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ voter.name }}</h6>
+                                            <small class="text-muted">EPIC: {{ voter.voter_id or 'N/A' }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="row" style="font-size: 0.85rem;">
+                                        <div class="col-6 mb-1"><strong>State:</strong> {{ voter.state or 'N/A' }}</div>
+                                        <div class="col-6 mb-1"><strong>District:</strong> {{ voter.district or 'N/A' }}</div>
+                                        <div class="col-6 mb-1"><strong>Constituency:</strong> {{ voter.constituency or 'N/A' }}</div>
+                                        <div class="col-6 mb-1"><strong>Gender:</strong> {{ voter.gender or 'N/A' }}</div>
+                                        <div class="col-12 mb-1"><strong>Status:</strong> <span class="status-badge active">Registered</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-search" style="font-size: 3rem; color: var(--text-muted);"></i>
+                        <p class="mt-3 text-muted">No matching records found. Try different search criteria.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="alert alert-info mt-3" style="font-size: 0.85rem;">
+                <i class="bi bi-info-circle"></i>
+                This result is generated from demonstration data and is not an official electoral-roll lookup.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

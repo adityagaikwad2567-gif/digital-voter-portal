@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Documents Required — Digital Voter Services{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-file-earmark"></i> Documents Required</h2>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ url_for('main.home') }}">Home</a></li><li class="breadcrumb-item active">Documents</li></ol></nav>
+    </div>
+</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-custom mb-4">
+                <div class="card-body">
+                    <h5 style="color: var(--primary);">Documents for New Voter Registration</h5>
+                    <p class="text-muted">For this academic demonstration, the following identity documents are accepted:</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card h-100" style="border-radius: var(--radius); border: 1px solid var(--border-color);">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-person-badge text-primary"></i> Aadhaar Card</h6>
+                                    <small class="text-muted">Government-issued unique identification number.</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100" style="border-radius: var(--radius); border: 1px solid var(--border-color);">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-credit-card text-primary"></i> PAN Card</h6>
+                                    <small class="text-muted">Permanent Account Number card.</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100" style="border-radius: var(--radius); border: 1px solid var(--border-color);">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-book text-primary"></i> Passport</h6>
+                                    <small class="text-muted">Valid Indian passport.</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100" style="border-radius: var(--radius); border: 1px solid var(--border-color);">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-car-front text-primary"></i> Driving License</h6>
+                                    <small class="text-muted">Valid driving license.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning mt-4" style="font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-triangle"></i> This is an academic demonstration. No real documents are verified or stored.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
