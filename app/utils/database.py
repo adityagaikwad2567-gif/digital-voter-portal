@@ -326,14 +326,15 @@ def _init_postgres():
 
 def _init_sqlite():
     """Initialize SQLite with seed data."""
-    # Import the seed function from init_sqlite
-    import sys
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    from init_sqlite import main as seed_main
-    seed_main()
-    # Reconnect after init
-    global _sqlite_conn
-    _sqlite_conn = None
+    try:
+        import sys
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        from init_sqlite import main as seed_main
+        seed_main()
+        global _sqlite_conn
+        _sqlite_conn = None
+    except (OSError, PermissionError):
+        print("[database] SQLite init skipped: read-only filesystem")
 
 
 def _seed_data_pg():

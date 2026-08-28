@@ -15,8 +15,11 @@ def create_app():
     # Initialize CSRF
     csrf.init_app(app)
 
-    # Ensure upload folder exists
-    os.makedirs(app.config.get('UPLOAD_FOLDER', 'static/uploads'), exist_ok=True)
+    # Ensure upload folder exists (may fail on read-only Vercel filesystem)
+    try:
+        os.makedirs(app.config.get('UPLOAD_FOLDER', 'static/uploads'), exist_ok=True)
+    except OSError:
+        pass  # Read-only filesystem (e.g. Vercel serverless)
 
     # Register blueprints
     from app.routes.auth import auth_bp
