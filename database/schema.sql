@@ -168,12 +168,12 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 -- ─── Demo Data ──────────────────────────────────────────────
 
--- Admin user (password: Admin@12345)
+-- Admin user (password: Admin@2026)
 INSERT INTO users (name, email, mobile, voter_id, password_hash, role, status)
 VALUES ('System Administrator', 'admin@demo.local', '9000000000', NULL,
         'scrypt:32768:8:1$dummy$placeholder', 'ADMIN', 'active');
 
--- Demo voters (password: Demo@12345)
+-- Demo voters (password: Voter@2026)
 INSERT INTO users (name, email, mobile, voter_id, password_hash, role, status)
 VALUES
 ('Aditya Gaikwad', 'aditya@demo.local', '9100000001', 'DEMO100001',

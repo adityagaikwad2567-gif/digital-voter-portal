@@ -498,8 +498,8 @@ def _seed_data_pg():
     """Seed demo data into PostgreSQL using a single connection for speed."""
     from werkzeug.security import generate_password_hash
 
-    admin_hash = generate_password_hash('Admin@12345')
-    voter_hash = generate_password_hash('Demo@12345')
+    admin_hash = generate_password_hash('Admin@2026')
+    voter_hash = generate_password_hash('Voter@2026')
 
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')

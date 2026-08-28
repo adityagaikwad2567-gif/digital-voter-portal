@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_required, current_user
 from app.services.db_operations import (
     create_application, get_application_by_ref, get_user_applications,
@@ -50,22 +50,22 @@ def new_registration():
         step = request.form.get('step', '1')
         
         # Store form data in session
-        if 'reg_data' not in request.session:
-            request.session['reg_data'] = {}
+        if 'reg_data' not in session:
+            session['reg_data'] = {}
         
-        reg_data = request.session.get('reg_data', {})
+        reg_data = session.get('reg_data', {})
         
         if step == '1':  # Personal Info
             reg_data['full_name'] = request.form.get('full_name', '').strip()
             reg_data['dob'] = request.form.get('dob', '')
             reg_data['gender'] = request.form.get('gender', '')
-            request.session['reg_data'] = reg_data
+            session['reg_data'] = reg_data
             return render_template('voter/registration_step2.html', data=reg_data)
         
         elif step == '2':  # Contact Info
             reg_data['mobile'] = request.form.get('mobile', '').strip()
             reg_data['email'] = request.form.get('email', '').strip()
-            request.session['reg_data'] = reg_data
+            session['reg_data'] = reg_data
             return render_template('voter/registration_step3.html', data=reg_data)
         
         elif step == '3':  # Address
@@ -74,14 +74,14 @@ def new_registration():
             reg_data['district'] = request.form.get('district', '')
             reg_data['constituency'] = request.form.get('constituency', '')
             reg_data['pincode'] = request.form.get('pincode', '').strip()
-            request.session['reg_data'] = reg_data
+            session['reg_data'] = reg_data
             return render_template('voter/registration_step4.html', data=reg_data)
         
         elif step == '4':  # Identity & Declaration
             reg_data['id_type'] = request.form.get('id_type', '')
             reg_data['id_number'] = request.form.get('id_number', '').strip()
             reg_data['declaration'] = request.form.get('declaration', '')
-            request.session['reg_data'] = reg_data
+            session['reg_data'] = reg_data
             
             # Create application
             user_id = current_user.id if current_user.is_authenticated else None
@@ -123,7 +123,7 @@ def new_registration():
             log_user_action(user_id, 'APPLICATION_SUBMITTED', 'application', app_id)
             
             # Clear session data
-            request.session.pop('reg_data', None)
+            session.pop('reg_data', None)
             
             return render_template('voter/registration_success.html',
                                    reference_number=ref_number,

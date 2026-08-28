@@ -132,8 +132,8 @@ CREATE TABLE audit_logs (
 def _seed_database(conn):
     """Insert minimal seed data for tests."""
     cur = conn.cursor()
-    admin_pw = generate_password_hash('Admin@12345')
-    voter_pw = generate_password_hash('Demo@12345')
+    admin_pw = generate_password_hash('Admin@2026')
+    voter_pw = generate_password_hash('Voter@2026')
 
     cur.execute(
         "INSERT INTO users (name, email, mobile, voter_id, password_hash, role, status, created_at) "
@@ -289,7 +289,7 @@ def login_admin(client):
     """Log in as the test admin."""
     return client.post('/auth/login', data={
         'email': 'admin@demo.local',
-        'password': 'Admin@12345',
+        'password': 'Admin@2026',
     }, follow_redirects=False)
 
 
@@ -297,7 +297,7 @@ def login_voter(client):
     """Log in as the first test voter."""
     return client.post('/auth/login', data={
         'email': 'voter@demo.local',
-        'password': 'Demo@12345',
+        'password': 'Voter@2026',
     }, follow_redirects=False)
 
 
@@ -305,7 +305,7 @@ def login_voter2(client):
     """Log in as the second test voter."""
     return client.post('/auth/login', data={
         'email': 'voter2@demo.local',
-        'password': 'Demo@12345',
+        'password': 'Voter@2026',
     }, follow_redirects=False)
 
 

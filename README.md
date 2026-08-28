@@ -201,13 +201,13 @@ digital-voter-portal/
 
 | Role | Email | Password |
 |------|-------|----------|
-| **Admin** | admin@demo.local | Admin@12345 |
-| **Voter** | aditya@demo.local | Demo@12345 |
-| **Voter** | aditi@demo.local | Demo@12345 |
-| **Voter** | rahul@demo.local | Demo@12345 |
-| **Voter** | priya@demo.local | Demo@12345 |
-| **Voter** | sneha@demo.local | Demo@12345 |
-| **Election Official** | official@demo.local | Official@12345 |
+| **Admin** | admin@demo.local | Admin@2026 |
+| **Voter** | aditya@demo.local | Voter@2026 |
+| **Voter** | aditi@demo.local | Voter@2026 |
+| **Voter** | rahul@demo.local | Voter@2026 |
+| **Voter** | priya@demo.local | Voter@2026 |
+| **Voter** | sneha@demo.local | Voter@2026 |
+| **Election Official** | official@demo.local | Official@2026 |
 
 ## Database Schema
 

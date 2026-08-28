@@ -102,8 +102,8 @@ def _seed_demo_data():
     backend = get_backend()
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    admin_pw = generate_password_hash('Admin@12345')
-    voter_pw = generate_password_hash('Demo@12345')
+    admin_pw = generate_password_hash('Admin@2026')
+    voter_pw = generate_password_hash('Voter@2026')
     off_pw = generate_password_hash('Official@12345')
 
     users = [
