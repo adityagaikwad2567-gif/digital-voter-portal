@@ -1,113 +1,150 @@
-"""Database abstraction layer — MySQL primary, SQLite fallback.
+"""Database abstraction layer — MySQL / PostgreSQL / SQLite fallback.
 
-If MySQL is available the app uses it exactly as before.  When MySQL is
-unreachable the module transparently falls back to an SQLite file in the
-project root so the whole application still works for demos and previews.
+If DATABASE_URL is set (Render), use PostgreSQL.
+If MySQL is available, use it.
+Otherwise fall back to SQLite.
 """
-import os, sqlite3, datetime
+import os, sqlite3, datetime, re
 from config import Config
 
-# ── Determine which backend to use ──────────────────────────
-_SQLITE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'voter_portal.db')
-_backend = None  # 'mysql' | 'sqlite' | None (not yet probed)
+_backend = None  # 'mysql' | 'postgresql' | 'sqlite' | None (not yet probed)
+_sqlite_conn = None
 
-# Map MySQL-style placeholders (%s) to SQLite style (?)
+_SQLITE_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    'voter_portal.db'
+)
+
+# ── Query adaptation (MySQL → SQLite) ───────────────────────
 def _adapt_query(q):
     """Convert MySQL-style query to SQLite-compatible query."""
     q = q.replace('%s', '?')
-    # Strip MySQL-specific clauses that SQLite doesn't support
     q = q.replace('ON UPDATE CURRENT_TIMESTAMP', '')
-    # Replace DATE_FORMAT with strftime
-    import re
     q = re.sub(r"DATE_FORMAT\((\w+),\s*'([^']+)'\)", r"strftime('\2', \1)", q)
     return q
 
-# Map a dict row returned by sqlite3.Row to a plain dict
-def _row_to_dict(row):
-    if row is None:
-        return None
-    if isinstance(row, dict):
-        return row
-    return dict(row)
-
-def _rows_to_dicts(rows):
-    if rows is None:
-        return []
-    return [dict(r) if not isinstance(r, dict) else r for r in rows]
+def _adapt_query_pg(q):
+    """Convert MySQL-style query to PostgreSQL-compatible query."""
+    q = q.replace('%s', '%s')  # PostgreSQL also uses %s, so no change needed
+    q = q.replace('ON UPDATE CURRENT_TIMESTAMP', '')
+    # DATE_FORMAT → to_char
+    q = re.sub(r"DATE_FORMAT\((\w+),\s*'([^']+)'\)", r"to_char(\1, '\2')", q)
+    return q
 
 
-# ── MySQL helpers (original behaviour) ──────────────────────
-def _mysql_connect():
-    import pymysql
-    return pymysql.connect(
-        host=Config.DATABASE_HOST,
-        user=Config.DATABASE_USER,
-        password=Config.DATABASE_PASSWORD,
-        database=Config.DATABASE_NAME,
-        port=Config.DATABASE_PORT,
-        cursorclass=pymysql.cursors.DictCursor,
-        autocommit=True,
-    )
-
-
+# ── Backend detection ───────────────────────────────────────
 def _try_mysql():
-    """Return True if MySQL is reachable."""
     try:
-        conn = _mysql_connect()
+        import pymysql
+        conn = pymysql.connect(
+            host=Config.DATABASE_HOST, user=Config.DATABASE_USER,
+            password=Config.DATABASE_PASSWORD, database=Config.DATABASE_NAME,
+            port=Config.DATABASE_PORT, connect_timeout=3
+        )
         conn.close()
         return True
     except Exception:
         return False
 
+def _try_postgres():
+    """Check if DATABASE_URL is set and PostgreSQL is reachable."""
+    db_url = os.environ.get('DATABASE_URL', '')
+    if not db_url:
+        return False
+    try:
+        import psycopg2
+        conn = psycopg2.connect(db_url, connect_timeout=3)
+        conn.close()
+        return True
+    except Exception:
+        return False
 
-# ── SQLite helpers ──────────────────────────────────────────
-_sqlite_conn = None
-
-def _sqlite_connect():
-    global _sqlite_conn
-    if _sqlite_conn is None:
-        _sqlite_conn = sqlite3.connect(_SQLITE_PATH, check_same_thread=False)
-        _sqlite_conn.row_factory = sqlite3.Row
-        _sqlite_conn.execute("PRAGMA journal_mode=WAL")
-        _sqlite_conn.execute("PRAGMA foreign_keys=ON")
-    return _sqlite_conn
-
-# Map MySQL NOW() / CURRENT_TIMESTAMP → SQLite equivalents at connect time
-def _sqlite_now():
-    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-
-# ── Public API (backend-agnostic) ───────────────────────────
 def get_backend():
     global _backend
-    if _backend is None:
-        _backend = 'mysql' if _try_mysql() else 'sqlite'
-        print(f"[database] Using backend: {_backend.upper()}")
+    if _backend is not None:
+        return _backend
+    if _try_postgres():
+        _backend = 'postgresql'
+    elif _try_mysql():
+        _backend = 'mysql'
+    else:
+        _backend = 'sqlite'
+    print(f"[database] Using backend: {_backend.upper()}")
     return _backend
 
 
-def query_db(query, args=None, one=False):
-    backend = get_backend()
-    if backend == 'mysql':
-        return _query_mysql(query, args, one)
-    return _query_sqlite(query, args, one)
+# ── PostgreSQL connection ───────────────────────────────────
+def _pg_connect():
+    import psycopg2
+    db_url = os.environ.get('DATABASE_URL', '')
+    conn = psycopg2.connect(db_url)
+    conn.autocommit = True
+    return conn
+
+def _query_pg(query, args, one):
+    try:
+        conn = _pg_connect()
+        cur = conn.cursor()
+        cur.execute(_adapt_query_pg(query), args)
+        if one:
+            row = cur.fetchone()
+            if row is None:
+                result = None
+            else:
+                result = dict(zip([d[0] for d in cur.description], row))
+        else:
+            cols = [d[0] for d in cur.description]
+            result = [dict(zip(cols, r)) for r in cur.fetchall()]
+        cur.close()
+        conn.close()
+        return result
+    except Exception as e:
+        print(f"PostgreSQL query error: {e}")
+        return None
+
+def _execute_pg(query, args):
+    try:
+        conn = _pg_connect()
+        cur = conn.cursor()
+        cur.execute(_adapt_query_pg(query), args)
+        lastrowid = None
+        if cur.description:
+            row = cur.fetchone()
+            if row:
+                lastrowid = row[0]
+        cur.close()
+        conn.close()
+        return lastrowid
+    except Exception as e:
+        print(f"PostgreSQL execute error: {e}")
+        return None
+
+def _transaction_pg(operations):
+    try:
+        conn = _pg_connect()
+        conn.autocommit = False
+        cur = conn.cursor()
+        for q, a in operations:
+            cur.execute(_adapt_query_pg(q), a)
+        conn.commit()
+        cur.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"PostgreSQL transaction error: {e}")
+        return False
 
 
-def execute_db(query, args=None):
-    backend = get_backend()
-    if backend == 'mysql':
-        return _execute_mysql(query, args)
-    return _execute_sqlite(query, args)
+# ── MySQL connection ────────────────────────────────────────
+def _mysql_connect():
+    import pymysql
+    return pymysql.connect(
+        host=Config.DATABASE_HOST, user=Config.DATABASE_USER,
+        password=Config.DATABASE_PASSWORD, database=Config.DATABASE_NAME,
+        port=Config.DATABASE_PORT, cursorclass=pymysql.cursors.DictCursor,
+        autocommit=True,
+    )
 
-
-def execute_transaction(operations):
-    backend = get_backend()
-    if backend == 'mysql':
-        return _transaction_mysql(operations)
-    return _transaction_sqlite(operations)
-
-
-# ── MySQL implementations (unchanged logic) ─────────────────
 def _query_mysql(query, args, one):
     try:
         conn = _mysql_connect()
@@ -121,7 +158,6 @@ def _query_mysql(query, args, one):
         print(f"MySQL query error: {e}")
         return None
 
-
 def _execute_mysql(query, args):
     try:
         conn = _mysql_connect()
@@ -134,7 +170,6 @@ def _execute_mysql(query, args):
     except Exception as e:
         print(f"MySQL execute error: {e}")
         return None
-
 
 def _transaction_mysql(operations):
     try:
@@ -152,21 +187,26 @@ def _transaction_mysql(operations):
         return False
 
 
-# ── SQLite implementations ──────────────────────────────────
+# ── SQLite connection ───────────────────────────────────────
+def _sqlite_connect():
+    global _sqlite_conn
+    if _sqlite_conn is None:
+        _sqlite_conn = sqlite3.connect(_SQLITE_PATH, check_same_thread=False)
+        _sqlite_conn.row_factory = sqlite3.Row
+        _sqlite_conn.execute("PRAGMA journal_mode=WAL")
+        _sqlite_conn.execute("PRAGMA foreign_keys=ON")
+    return _sqlite_conn
+
+def _sqlite_now():
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
 def _query_sqlite(query, args, one):
     try:
         conn = _sqlite_connect()
-        conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         q = _adapt_query(query)
-        # Replace NOW() with the literal timestamp value (not a ? placeholder,
-        # because NOW() can appear at any position and insert(0,...) would
-        # shift all subsequent arguments)
         q = q.replace('NOW()', f"'{_sqlite_now()}'").replace('ON UPDATE CURRENT_TIMESTAMP', '')
-        # Handle DATE_FORMAT → strftime
-        q = q.replace("DATE_FORMAT(created_at, '%Y-%m')", "strftime('%Y-%m', created_at)")
-        a = list(args) if args else []
-        cur.execute(q, a)
+        cur.execute(q, list(args) if args else [])
         if one:
             row = cur.fetchone()
             result = dict(row) if row else None
@@ -178,16 +218,13 @@ def _query_sqlite(query, args, one):
         print(f"SQLite query error: {e}\n  Query: {query[:120]}")
         return None
 
-
 def _execute_sqlite(query, args):
     try:
         conn = _sqlite_connect()
-        conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         q = _adapt_query(query)
         q = q.replace('NOW()', f"'{_sqlite_now()}'").replace('ON UPDATE CURRENT_TIMESTAMP', '')
-        a = list(args) if args else []
-        cur.execute(q, a)
+        cur.execute(q, list(args) if args else [])
         conn.commit()
         lastrowid = cur.lastrowid
         cur.close()
@@ -196,16 +233,13 @@ def _execute_sqlite(query, args):
         print(f"SQLite execute error: {e}\n  Query: {query[:120]}")
         return None
 
-
 def _transaction_sqlite(operations):
     try:
         conn = _sqlite_connect()
-        conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         for q, a in operations:
             q2 = _adapt_query(q).replace('NOW()', f"'{_sqlite_now()}'")
-            a2 = list(a) if a else []
-            cur.execute(q2, a2)
+            cur.execute(q2, list(a) if a else [])
         conn.commit()
         cur.close()
         return True
@@ -213,3 +247,240 @@ def _transaction_sqlite(operations):
         print(f"SQLite transaction error: {e}")
         conn.rollback()
         return False
+
+
+# ── Public API ──────────────────────────────────────────────
+def query_db(query, args=None, one=False):
+    backend = get_backend()
+    if backend == 'postgresql':
+        return _query_pg(query, args, one)
+    if backend == 'mysql':
+        return _query_mysql(query, args, one)
+    return _query_sqlite(query, args, one)
+
+def execute_db(query, args=None):
+    backend = get_backend()
+    if backend == 'postgresql':
+        return _execute_pg(query, args)
+    if backend == 'mysql':
+        return _execute_mysql(query, args)
+    return _execute_sqlite(query, args)
+
+def execute_transaction(operations):
+    backend = get_backend()
+    if backend == 'postgresql':
+        return _transaction_pg(operations)
+    if backend == 'mysql':
+        return _transaction_mysql(operations)
+    return _transaction_sqlite(operations)
+
+
+# ── Auto-initialization (for production deploys) ────────────
+def init_database():
+    """Create tables and seed demo data if the database is empty."""
+    backend = get_backend()
+    if backend == 'mysql':
+        # MySQL: check if tables exist
+        result = query_db("SHOW TABLES", one=True)
+        if result is not None:
+            return  # Already initialized
+
+    elif backend == 'postgresql':
+        # PostgreSQL: check if users table exists
+        result = query_db(
+            "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')",
+            one=True
+        )
+        if result and result.get('exists'):
+            return  # Already initialized
+        _init_postgres()
+
+    else:  # sqlite
+        result = query_db("SELECT name FROM sqlite_master WHERE type='table' AND name='users'", one=True)
+        if result:
+            return  # Already initialized
+        _init_sqlite()
+
+    print("[database] Tables created and seeded successfully")
+
+
+def _init_postgres():
+    """Initialize PostgreSQL with schema and seed data."""
+    schema_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        'database', 'schema_postgres.sql'
+    )
+    if os.path.exists(schema_path):
+        with open(schema_path, 'r') as f:
+            schema = f.read()
+        # Execute schema
+        conn = _pg_connect()
+        conn.autocommit = True
+        cur = conn.cursor()
+        cur.execute(schema)
+        cur.close()
+        conn.close()
+
+    _seed_data_pg()
+
+
+def _init_sqlite():
+    """Initialize SQLite with seed data."""
+    # Import the seed function from init_sqlite
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    from init_sqlite import main as seed_main
+    seed_main()
+    # Reconnect after init
+    global _sqlite_conn
+    _sqlite_conn = None
+
+
+def _seed_data_pg():
+    """Seed demo data into PostgreSQL."""
+    from werkzeug.security import generate_password_hash
+    import uuid
+
+    admin_hash = generate_password_hash('Admin@12345')
+    voter_hash = generate_password_hash('Demo@12345')
+
+    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+    week_later = (datetime.datetime.now() + datetime.timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
+
+    # Check if admin exists
+    admin = query_db("SELECT id FROM users WHERE email = 'admin@demo.local'", one=True)
+    if admin:
+        return  # Already seeded
+
+    users = [
+        ('System Administrator', 'admin@demo.local', '9000000000', None, admin_hash, 'ADMIN', 'active'),
+        ('Aditya Gaikwad', 'aditya@demo.local', '9100000001', 'DEMO100001', voter_hash, 'VOTER', 'active'),
+        ('Aditi Naik', 'aditi@demo.local', '9100000002', 'DEMO100002', voter_hash, 'VOTER', 'active'),
+        ('Rahul Sharma', 'rahul@demo.local', '9100000003', 'DEMO100003', voter_hash, 'VOTER', 'active'),
+        ('Priya Patil', 'priya@demo.local', '9100000004', 'DEMO100004', voter_hash, 'VOTER', 'active'),
+        ('Sneha Deshmukh', 'sneha@demo.local', '9100000005', 'DEMO100005', voter_hash, 'VOTER', 'active'),
+        ('Election Officer', 'official@demo.local', '9000000099', None, voter_hash, 'ELECTION_OFFICIAL', 'active'),
+    ]
+    for u in users:
+        execute_db(
+            "INSERT INTO users (name, email, mobile, voter_id, password_hash, role, status, created_at) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", u
+        )
+
+    # Voter profiles
+    profiles = [
+        (2, '2004-05-15', 'Male', '123 Demo Street, Akola', 'Maharashtra', 'Akola', 'Demo Constituency', '444001'),
+        (3, '2004-08-22', 'Female', '456 Demo Nagar, Akola', 'Maharashtra', 'Akola', 'Demo Constituency', '444001'),
+        (4, '2003-12-10', 'Male', '789 Demo Road, Nagpur', 'Maharashtra', 'Nagpur', 'Demo Constituency North', '440001'),
+        (5, '2004-03-08', 'Female', '321 Demo Colony, Pune', 'Maharashtra', 'Pune', 'Demo Constituency Central', '411001'),
+        (6, '2004-01-25', 'Female', '654 Demo Lane, Mumbai', 'Maharashtra', 'Mumbai', 'Demo Constituency South', '400001'),
+    ]
+    for p in profiles:
+        execute_db(
+            "INSERT INTO voter_profiles (user_id, dob, gender, address, state, district, constituency, pincode) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", p
+        )
+
+    # Polling stations
+    stations = [
+        ('Demo Government College', 'Example Road, Akola, Maharashtra', 'Maharashtra', 'Akola', 'Demo Constituency', 'Demo Booth 12', 500, 'Wheelchair Accessible', 'Drinking Water, Toilet, Help Desk'),
+        ('Demo Community Hall', 'Market Street, Nagpur, Maharashtra', 'Maharashtra', 'Nagpur', 'Demo Constituency North', 'Demo Booth 05', 400, 'Wheelchair Accessible', 'Drinking Water, Toilet'),
+        ('Demo Public School', 'Station Road, Pune, Maharashtra', 'Maharashtra', 'Pune', 'Demo Constituency Central', 'Demo Booth 08', 350, 'Ramp Access', 'Drinking Water, Toilet'),
+        ('Demo Municipal Building', 'Main Road, Mumbai, Maharashtra', 'Maharashtra', 'Mumbai', 'Demo Constituency South', 'Demo Booth 15', 600, 'Wheelchair Accessible', 'Drinking Water, Toilet, Parking'),
+    ]
+    for s in stations:
+        execute_db(
+            "INSERT INTO polling_stations (name, address, state, district, constituency, booth_number, capacity, accessibility, facilities) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", s
+        )
+
+    # Elections
+    execute_db(
+        "INSERT INTO elections (name, description, election_type, constituency, start_time, end_time, status, created_at) "
+        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+        ('BCA Student Council Election 2026', 'Annual student council election for BCA department', 'Student Council',
+         'All Constituencies', yesterday, week_later, 'Active', now)
+    )
+    execute_db(
+        "INSERT INTO elections (name, description, election_type, constituency, start_time, end_time, status, created_at) "
+        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+        ('BCA Cultural Committee 2025', 'Cultural committee election (completed)', 'Cultural Committee',
+         'All Constituencies', '2025-11-01 09:00:00', '2025-11-07 18:00:00', 'Completed', '2025-10-25 09:00:00')
+    )
+
+    # Candidates for election 1
+    candidates = [
+        (1, 'Aarav Mehta', 'BCA United', 'Star', 'Third-year BCA student'),
+        (1, 'Sneha Kulkarni', 'Tech Forward', 'Laptop', 'Second-year BCA student'),
+        (1, 'Vikram Patil', 'Student Voice', 'Megaphone', 'First-year BCA student'),
+        (2, 'Priya Deshmukh', 'Arts Alliance', 'Palette', 'Cultural enthusiast'),
+        (2, 'Rohan Gupta', 'Music Club', 'Note', 'Music lover'),
+        (2, 'Neha Joshi', 'Drama Society', 'Masks', 'Drama enthusiast'),
+    ]
+    for c in candidates:
+        execute_db(
+            "INSERT INTO candidates (election_id, name, party_name, symbol, description, created_at) "
+            "VALUES (%s, %s, %s, %s, %s, %s)", (*c, now)
+        )
+
+    # Applications
+    execute_db(
+        "INSERT INTO applications (user_id, application_type, reference_number, status, submitted_at, updated_at) "
+        "VALUES (%s, %s, %s, %s, %s, %s)",
+        (2, 'correction', f'DEMO-2026-CORR{str(1).zfill(6)}', 'Submitted', '2026-08-20 10:00:00', '2026-08-20 10:00:00')
+    )
+    execute_db(
+        "INSERT INTO applications (user_id, application_type, reference_number, status, submitted_at, updated_at) "
+        "VALUES (%s, %s, %s, %s, %s, %s)",
+        (3, 'new_registration', f'DEMO-2026-REG{str(2).zfill(6)}', 'Approved', '2026-02-01 10:00:00', '2026-02-15 10:00:00')
+    )
+    execute_db(
+        "INSERT INTO applications (user_id, application_type, reference_number, status, submitted_at, updated_at) "
+        "VALUES (%s, %s, %s, %s, %s, %s)",
+        (4, 'new_registration', f'DEMO-2026-REG{str(1).zfill(6)}', 'Approved', '2026-01-15 10:00:00', '2026-02-01 10:00:00')
+    )
+
+    # Audit logs
+    audit_logs = [
+        (1, 'LOGIN', 'user', 1, '127.0.0.1', now),
+        (3, 'LOGIN', 'user', 3, '127.0.0.1', '2026-08-26 09:30:00'),
+        (2, 'LOGIN', 'user', 2, '127.0.0.1', '2026-08-26 09:00:00'),
+        (1, 'LOGIN', 'user', 1, '127.0.0.1', '2026-08-26 08:00:00'),
+        (1, 'ELECTION_CREATED', 'election', 1, '127.0.0.1', '2026-08-20 09:00:00'),
+    ]
+    for a in audit_logs:
+        execute_db(
+            "INSERT INTO audit_logs (user_id, action, entity, entity_id, ip_address, created_at) "
+            "VALUES (%s, %s, %s, %s, %s, %s)", a
+        )
+
+    # Grievances
+    grievances = [
+        (2, f'DEMO-2026-GRV{str(1).zfill(6)}', 'voter_registration', 'Name Mismatch',
+         'My name shows incorrectly on the electoral roll', 'aditya@demo.local', 'Submitted', now, now),
+        (3, f'DEMO-2026-GRV{str(2).zfill(6)}', 'polling_station', 'Accessibility Issue',
+         'Polling station lacks wheelchair ramp', 'aditi@demo.local', 'Submitted', now, now),
+        (4, f'DEMO-2026-GRV{str(3).zfill(6)}', 'application', 'Application Delay',
+         'My application has been pending for 2 weeks', 'rahul@demo.local', 'Submitted', now, now),
+    ]
+    for g in grievances:
+        execute_db(
+            "INSERT INTO grievances (user_id, reference_number, category, subject, description, contact_info, status, created_at, updated_at) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", g
+        )
+
+    # Notifications
+    notifications = [
+        (2, 'Welcome to Digital Voter Services', 'Your account has been created successfully.', False, now),
+        (3, 'Application Approved', 'Your new registration application has been approved.', False, now),
+        (4, 'Application Approved', 'Your new registration application has been approved.', False, now),
+        (1, 'System Update', 'The portal has been upgraded with new features.', True, now),
+    ]
+    for n in notifications:
+        execute_db(
+            "INSERT INTO notifications (user_id, title, message, is_read, created_at) "
+            "VALUES (%s, %s, %s, %s, %s)", n
+        )
+
+    print("[database] PostgreSQL seeded with demo data")

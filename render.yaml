@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: digital-voter-portal
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 4
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: voter-portal-db
+          property: connectionString
+    healthCheckPath: /
+
+databases:
+  - name: voter-portal-db
+    plan: free
+    databaseName: voter_portal
+    ipAllowList: []

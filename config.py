@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    SECRET_KEY = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
+    SECRET_KEY = os.environ.get('SECRET_KEY', os.environ.get('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production'))
+    DATABASE_URL = os.environ.get('DATABASE_URL', '')  # Render PostgreSQL URL
     DATABASE_HOST = os.environ.get('DATABASE_HOST', 'localhost')
     DATABASE_USER = os.environ.get('DATABASE_USER', 'root')
     DATABASE_PASSWORD = os.environ.get('DATABASE_PASSWORD', 'root')
@@ -19,3 +20,7 @@ class Config:
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
     APPLICATION_NAME = 'Digital Voter Services Portal'
     ACADEMIC_DISCLAIMER = 'Academic Demonstration Project — Not an Official Government Website'
+
+    # Render uses postgres:// but psycopg2 needs postgresql://
+    if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)

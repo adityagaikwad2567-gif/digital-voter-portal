@@ -7,6 +7,9 @@ __pycache__/
 # Environment
 .env
 .env.local
+.env.production
+
+# Database files (keep schema.sql, ignore runtime DBs)
 *.db
 *-shm
 *-wal
@@ -19,14 +22,27 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Project
-.freebuff/
-.freebuffpreview.log
-file
-digital-voter-portal/
-start_preview.py
-preview_server.py
+# Test artifacts
+test_*.db
 test_startup.py
 test_admin_routes.py
 test_fk_debug*.db
-test_voter_portal.db
+
+# Logs
+*.log
+*.log.err
+
+# Dev-only files
+preview_server.py
+start_preview.py
+test_startup.py
+test_admin_routes.py
+
+# Old duplicate
+database/app/
+
+# Freebuff
+.freebuff/
+
+# Misc
+file
