@@ -49,7 +49,9 @@ def _try_mysql():
 def _parse_pg_url(db_url):
     """Parse DATABASE_URL into psycopg2 keyword arguments.
     Custom parser that handles brackets and @ in passwords
-    (Python 3.12+ urlparse chokes on brackets as IPv6 syntax)."""
+    (Python 3.12+ urlparse chokes on brackets as IPv6 syntax).
+    Uses hostaddr for IPv4 while keeping host for SNI/tenant routing."""
+    import socket
     # Strip scheme
     url = db_url.replace('postgresql://', '').replace('postgres://', '')
     # Split off dbname (everything after last /)
@@ -78,7 +80,6 @@ def _parse_pg_url(db_url):
         password = ''
     # Split host:port
     if hostport.startswith('['):
-        # IPv6: [host]:port
         bracket_end = hostport.find(']')
         host = hostport[1:bracket_end] if bracket_end > 0 else hostport
         port_str = hostport[bracket_end + 2:] if bracket_end + 1 < len(hostport) and hostport[bracket_end + 1] == ':' else ''
@@ -98,6 +99,14 @@ def _parse_pg_url(db_url):
     }
     if password:
         params['password'] = password
+    # Resolve hostname to IPv4 for Vercel serverless (can't do IPv6 outbound)
+    # but keep 'host' for SNI/tenant routing — use 'hostaddr' for the actual IP
+    try:
+        infos = socket.getaddrinfo(host, None, socket.AF_INET)
+        if infos:
+            params['hostaddr'] = infos[0][4][0]
+    except socket.gaierror:
+        pass  # keep original hostname, psycopg2 will try
     return params
 
 
