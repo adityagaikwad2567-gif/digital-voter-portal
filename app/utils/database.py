@@ -109,6 +109,7 @@ def _try_postgres():
     try:
         import psycopg2
         params = _parse_pg_url(db_url)
+        params['sslmode'] = 'require'
         conn = psycopg2.connect(**params, connect_timeout=10)
         conn.close()
         return True
@@ -135,6 +136,7 @@ def _pg_connect():
     import psycopg2
     db_url = os.environ.get('DATABASE_URL', '')
     params = _parse_pg_url(db_url)
+    params['sslmode'] = 'require'
     conn = psycopg2.connect(**params)
     conn.autocommit = True
     return conn
