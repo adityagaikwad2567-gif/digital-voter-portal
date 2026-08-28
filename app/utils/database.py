@@ -374,32 +374,92 @@ def init_database():
 
 
 def _init_postgres():
-    """Initialize PostgreSQL with schema and seed data.
-    Executes each statement individually for transaction-mode pooler compatibility."""
-    schema_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        'database', 'schema_postgres.sql'
-    )
-    if os.path.exists(schema_path):
-        with open(schema_path, 'r') as f:
-            schema = f.read()
-        # Split into individual statements and execute one by one
-        conn = _pg_connect()
-        conn.autocommit = True
-        cur = conn.cursor()
-        for statement in schema.split(';'):
-            stmt = statement.strip()
-            if stmt and not stmt.startswith('--'):
-                try:
-                    cur.execute(stmt)
-                except Exception as e:
-                    # Ignore 'already exists' errors
-                    if 'already exists' not in str(e).lower():
-                        print(f"Schema statement error: {e}")
-        cur.close()
-        conn.close()
-    else:
-        print(f"[database] Schema file not found: {schema_path}")
+    """Initialize PostgreSQL with tables and seed data.
+    Creates tables inline for Vercel serverless (no file access)."""
+    print("[database] Creating PostgreSQL tables...")
+    tables = [
+        """CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY, name VARCHAR(150) NOT NULL, email VARCHAR(200) NOT NULL UNIQUE,
+            mobile VARCHAR(15), voter_id VARCHAR(20) UNIQUE, password_hash VARCHAR(255) NOT NULL,
+            role VARCHAR(20) NOT NULL DEFAULT 'VOTER', status VARCHAR(20) NOT NULL DEFAULT 'active',
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, last_login TIMESTAMP
+        )""",
+        "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)",
+        "CREATE INDEX IF NOT EXISTS idx_users_voter_id ON users(voter_id)",
+        """CREATE TABLE IF NOT EXISTS voter_profiles (
+            id SERIAL PRIMARY KEY, user_id INT NOT NULL UNIQUE, dob DATE, gender VARCHAR(10),
+            address TEXT, state VARCHAR(100), district VARCHAR(100), constituency VARCHAR(150),
+            pincode VARCHAR(10), photo VARCHAR(255),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )""",
+        """CREATE TABLE IF NOT EXISTS applications (
+            id SERIAL PRIMARY KEY, user_id INT NOT NULL, application_type VARCHAR(30) NOT NULL,
+            reference_number VARCHAR(30) NOT NULL UNIQUE, status VARCHAR(30) NOT NULL DEFAULT 'Submitted',
+            submitted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, remarks TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )""",
+        """CREATE TABLE IF NOT EXISTS elections (
+            id SERIAL PRIMARY KEY, name VARCHAR(200) NOT NULL, description TEXT,
+            election_type VARCHAR(100), constituency VARCHAR(150),
+            start_time TIMESTAMP NOT NULL, end_time TIMESTAMP NOT NULL,
+            status VARCHAR(20) NOT NULL DEFAULT 'Draft',
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )""",
+        """CREATE TABLE IF NOT EXISTS candidates (
+            id SERIAL PRIMARY KEY, election_id INT NOT NULL, name VARCHAR(150) NOT NULL,
+            party_name VARCHAR(200), symbol VARCHAR(100), description TEXT, image VARCHAR(255),
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (election_id) REFERENCES elections(id) ON DELETE CASCADE
+        )""",
+        """CREATE TABLE IF NOT EXISTS votes (
+            id SERIAL PRIMARY KEY, election_id INT NOT NULL, voter_id INT NOT NULL,
+            candidate_id INT NOT NULL, voted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            reference_code VARCHAR(100) NOT NULL UNIQUE,
+            FOREIGN KEY (election_id) REFERENCES elections(id) ON DELETE CASCADE,
+            FOREIGN KEY (voter_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE,
+            UNIQUE (voter_id, election_id)
+        )""",
+        """CREATE TABLE IF NOT EXISTS polling_stations (
+            id SERIAL PRIMARY KEY, name VARCHAR(200) NOT NULL, address TEXT NOT NULL,
+            state VARCHAR(100), district VARCHAR(100), constituency VARCHAR(150),
+            booth_number VARCHAR(50), capacity INT DEFAULT 500,
+            accessibility VARCHAR(200), facilities TEXT
+        )""",
+        """CREATE TABLE IF NOT EXISTS grievances (
+            id SERIAL PRIMARY KEY, user_id INT NOT NULL, reference_number VARCHAR(30) NOT NULL UNIQUE,
+            category VARCHAR(30) NOT NULL, subject VARCHAR(200) NOT NULL, description TEXT NOT NULL,
+            contact_info VARCHAR(200), status VARCHAR(20) NOT NULL DEFAULT 'Submitted',
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )""",
+        """CREATE TABLE IF NOT EXISTS notifications (
+            id SERIAL PRIMARY KEY, user_id INT NOT NULL, title VARCHAR(200) NOT NULL,
+            message TEXT NOT NULL, is_read BOOLEAN NOT NULL DEFAULT FALSE,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )""",
+        """CREATE TABLE IF NOT EXISTS audit_logs (
+            id SERIAL PRIMARY KEY, user_id INT, action VARCHAR(100) NOT NULL,
+            entity VARCHAR(100) NOT NULL, entity_id INT, ip_address VARCHAR(45),
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        )""",
+    ]
+    conn = _pg_connect()
+    conn.autocommit = True
+    cur = conn.cursor()
+    for stmt in tables:
+        try:
+            cur.execute(stmt)
+        except Exception as e:
+            if 'already exists' not in str(e).lower():
+                print(f"Table creation error: {e}")
+    cur.close()
+    conn.close()
+    print("[database] PostgreSQL tables created")
 
     _seed_data_pg()
 
