@@ -150,6 +150,24 @@ def _pg_connect():
     conn.autocommit = True
     return conn
 
+# Persistent connection for init (reused across multiple queries)
+_pg_init_conn = None
+
+def _pg_init_connect():
+    global _pg_init_conn
+    if _pg_init_conn is None or _pg_init_conn.closed:
+        _pg_init_conn = _pg_connect()
+    return _pg_init_conn
+
+def _pg_init_close():
+    global _pg_init_conn
+    if _pg_init_conn and not _pg_init_conn.closed:
+        try:
+            _pg_init_conn.close()
+        except Exception:
+            pass
+    _pg_init_conn = None
+
 def _query_pg(query, args, one):
     try:
         conn = _pg_connect()
@@ -374,8 +392,7 @@ def init_database():
 
 
 def _init_postgres():
-    """Initialize PostgreSQL with tables and seed data.
-    Creates tables inline for Vercel serverless (no file access)."""
+    """Initialize PostgreSQL with tables and seed data using a single connection."""
     print("[database] Creating PostgreSQL tables...")
     tables = [
         """CREATE TABLE IF NOT EXISTS users (
@@ -478,9 +495,8 @@ def _init_sqlite():
 
 
 def _seed_data_pg():
-    """Seed demo data into PostgreSQL."""
+    """Seed demo data into PostgreSQL using a single connection for speed."""
     from werkzeug.security import generate_password_hash
-    import uuid
 
     admin_hash = generate_password_hash('Admin@12345')
     voter_hash = generate_password_hash('Demo@12345')
@@ -489,11 +505,20 @@ def _seed_data_pg():
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
     week_later = (datetime.datetime.now() + datetime.timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
 
+    conn = _pg_connect()
+    conn.autocommit = True
+    cur = conn.cursor()
+
     # Check if admin exists
-    admin = query_db("SELECT id FROM users WHERE email = 'admin@demo.local'", one=True)
-    if admin:
+    cur.execute("SELECT id FROM users WHERE email = 'admin@demo.local'")
+    if cur.fetchone():
+        cur.close()
+        conn.close()
         return  # Already seeded
 
+    print("[database] Seeding PostgreSQL demo data...")
+
+    # Users
     users = [
         ('System Administrator', 'admin@demo.local', '9000000000', None, admin_hash, 'ADMIN', 'active'),
         ('Aditya Gaikwad', 'aditya@demo.local', '9100000001', 'DEMO100001', voter_hash, 'VOTER', 'active'),
@@ -504,10 +529,7 @@ def _seed_data_pg():
         ('Election Officer', 'official@demo.local', '9000000099', None, voter_hash, 'ELECTION_OFFICIAL', 'active'),
     ]
     for u in users:
-        execute_db(
-            "INSERT INTO users (name, email, mobile, voter_id, password_hash, role, status, created_at) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", u
-        )
+        cur.execute("INSERT INTO users (name, email, mobile, voter_id, password_hash, role, status, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", u)
 
     # Voter profiles
     profiles = [
@@ -518,10 +540,7 @@ def _seed_data_pg():
         (6, '2004-01-25', 'Female', '654 Demo Lane, Mumbai', 'Maharashtra', 'Mumbai', 'Demo Constituency South', '400001'),
     ]
     for p in profiles:
-        execute_db(
-            "INSERT INTO voter_profiles (user_id, dob, gender, address, state, district, constituency, pincode) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", p
-        )
+        cur.execute("INSERT INTO voter_profiles (user_id, dob, gender, address, state, district, constituency, pincode) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", p)
 
     # Polling stations
     stations = [
@@ -531,26 +550,15 @@ def _seed_data_pg():
         ('Demo Municipal Building', 'Main Road, Mumbai, Maharashtra', 'Maharashtra', 'Mumbai', 'Demo Constituency South', 'Demo Booth 15', 600, 'Wheelchair Accessible', 'Drinking Water, Toilet, Parking'),
     ]
     for s in stations:
-        execute_db(
-            "INSERT INTO polling_stations (name, address, state, district, constituency, booth_number, capacity, accessibility, facilities) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", s
-        )
+        cur.execute("INSERT INTO polling_stations (name, address, state, district, constituency, booth_number, capacity, accessibility, facilities) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", s)
 
     # Elections
-    execute_db(
-        "INSERT INTO elections (name, description, election_type, constituency, start_time, end_time, status, created_at) "
-        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-        ('BCA Student Council Election 2026', 'Annual student council election for BCA department', 'Student Council',
-         'All Constituencies', yesterday, week_later, 'Active', now)
-    )
-    execute_db(
-        "INSERT INTO elections (name, description, election_type, constituency, start_time, end_time, status, created_at) "
-        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-        ('BCA Cultural Committee 2025', 'Cultural committee election (completed)', 'Cultural Committee',
-         'All Constituencies', '2025-11-01 09:00:00', '2025-11-07 18:00:00', 'Completed', '2025-10-25 09:00:00')
-    )
+    cur.execute("INSERT INTO elections (name, description, election_type, constituency, start_time, end_time, status, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+        ('BCA Student Council Election 2026', 'Annual student council election for BCA department', 'Student Council', 'All Constituencies', yesterday, week_later, 'Active', now))
+    cur.execute("INSERT INTO elections (name, description, election_type, constituency, start_time, end_time, status, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+        ('BCA Cultural Committee 2025', 'Cultural committee election (completed)', 'Cultural Committee', 'All Constituencies', '2025-11-01 09:00:00', '2025-11-07 18:00:00', 'Completed', '2025-10-25 09:00:00'))
 
-    # Candidates for election 1
+    # Candidates
     candidates = [
         (1, 'Aarav Mehta', 'BCA United', 'Star', 'Third-year BCA student'),
         (1, 'Sneha Kulkarni', 'Tech Forward', 'Laptop', 'Second-year BCA student'),
@@ -560,68 +568,37 @@ def _seed_data_pg():
         (2, 'Neha Joshi', 'Drama Society', 'Masks', 'Drama enthusiast'),
     ]
     for c in candidates:
-        execute_db(
-            "INSERT INTO candidates (election_id, name, party_name, symbol, description, created_at) "
-            "VALUES (%s, %s, %s, %s, %s, %s)", (*c, now)
-        )
+        cur.execute("INSERT INTO candidates (election_id, name, party_name, symbol, description, created_at) VALUES (%s, %s, %s, %s, %s, %s)", (*c, now))
 
     # Applications
-    execute_db(
-        "INSERT INTO applications (user_id, application_type, reference_number, status, submitted_at, updated_at) "
-        "VALUES (%s, %s, %s, %s, %s, %s)",
-        (2, 'correction', f'DEMO-2026-CORR{str(1).zfill(6)}', 'Submitted', '2026-08-20 10:00:00', '2026-08-20 10:00:00')
-    )
-    execute_db(
-        "INSERT INTO applications (user_id, application_type, reference_number, status, submitted_at, updated_at) "
-        "VALUES (%s, %s, %s, %s, %s, %s)",
-        (3, 'new_registration', f'DEMO-2026-REG{str(2).zfill(6)}', 'Approved', '2026-02-01 10:00:00', '2026-02-15 10:00:00')
-    )
-    execute_db(
-        "INSERT INTO applications (user_id, application_type, reference_number, status, submitted_at, updated_at) "
-        "VALUES (%s, %s, %s, %s, %s, %s)",
-        (4, 'new_registration', f'DEMO-2026-REG{str(1).zfill(6)}', 'Approved', '2026-01-15 10:00:00', '2026-02-01 10:00:00')
-    )
+    cur.execute("INSERT INTO applications (user_id, application_type, reference_number, status, submitted_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s)",
+        (2, 'correction', 'DEMO-2026-CORR000001', 'Submitted', '2026-08-20 10:00:00', '2026-08-20 10:00:00'))
+    cur.execute("INSERT INTO applications (user_id, application_type, reference_number, status, submitted_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s)",
+        (3, 'new_registration', 'DEMO-2026-REG000002', 'Approved', '2026-02-01 10:00:00', '2026-02-15 10:00:00'))
+    cur.execute("INSERT INTO applications (user_id, application_type, reference_number, status, submitted_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s)",
+        (4, 'new_registration', 'DEMO-2026-REG000001', 'Approved', '2026-01-15 10:00:00', '2026-02-01 10:00:00'))
 
-    # Audit logs
-    audit_logs = [
+    # Audit logs, grievances, notifications
+    for a in [
         (1, 'LOGIN', 'user', 1, '127.0.0.1', now),
         (3, 'LOGIN', 'user', 3, '127.0.0.1', '2026-08-26 09:30:00'),
         (2, 'LOGIN', 'user', 2, '127.0.0.1', '2026-08-26 09:00:00'),
-        (1, 'LOGIN', 'user', 1, '127.0.0.1', '2026-08-26 08:00:00'),
         (1, 'ELECTION_CREATED', 'election', 1, '127.0.0.1', '2026-08-20 09:00:00'),
-    ]
-    for a in audit_logs:
-        execute_db(
-            "INSERT INTO audit_logs (user_id, action, entity, entity_id, ip_address, created_at) "
-            "VALUES (%s, %s, %s, %s, %s, %s)", a
-        )
+    ]:
+        cur.execute("INSERT INTO audit_logs (user_id, action, entity, entity_id, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)", a)
+    for g in [
+        (2, 'DEMO-2026-GRV000001', 'voter_registration', 'Name Mismatch', 'My name shows incorrectly', 'aditya@demo.local', 'Submitted', now, now),
+        (3, 'DEMO-2026-GRV000002', 'polling_station', 'Accessibility Issue', 'No wheelchair ramp', 'aditi@demo.local', 'Submitted', now, now),
+        (4, 'DEMO-2026-GRV000003', 'application', 'Application Delay', 'Pending 2 weeks', 'rahul@demo.local', 'Submitted', now, now),
+    ]:
+        cur.execute("INSERT INTO grievances (user_id, reference_number, category, subject, description, contact_info, status, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", g)
+    for n in [
+        (2, 'Welcome', 'Account created successfully.', False, now),
+        (3, 'Application Approved', 'Your registration is approved.', False, now),
+        (1, 'System Update', 'Portal upgraded.', True, now),
+    ]:
+        cur.execute("INSERT INTO notifications (user_id, title, message, is_read, created_at) VALUES (%s, %s, %s, %s, %s)", n)
 
-    # Grievances
-    grievances = [
-        (2, f'DEMO-2026-GRV{str(1).zfill(6)}', 'voter_registration', 'Name Mismatch',
-         'My name shows incorrectly on the electoral roll', 'aditya@demo.local', 'Submitted', now, now),
-        (3, f'DEMO-2026-GRV{str(2).zfill(6)}', 'polling_station', 'Accessibility Issue',
-         'Polling station lacks wheelchair ramp', 'aditi@demo.local', 'Submitted', now, now),
-        (4, f'DEMO-2026-GRV{str(3).zfill(6)}', 'application', 'Application Delay',
-         'My application has been pending for 2 weeks', 'rahul@demo.local', 'Submitted', now, now),
-    ]
-    for g in grievances:
-        execute_db(
-            "INSERT INTO grievances (user_id, reference_number, category, subject, description, contact_info, status, created_at, updated_at) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", g
-        )
-
-    # Notifications
-    notifications = [
-        (2, 'Welcome to Digital Voter Services', 'Your account has been created successfully.', False, now),
-        (3, 'Application Approved', 'Your new registration application has been approved.', False, now),
-        (4, 'Application Approved', 'Your new registration application has been approved.', False, now),
-        (1, 'System Update', 'The portal has been upgraded with new features.', True, now),
-    ]
-    for n in notifications:
-        execute_db(
-            "INSERT INTO notifications (user_id, title, message, is_read, created_at) "
-            "VALUES (%s, %s, %s, %s, %s)", n
-        )
-
+    cur.close()
+    conn.close()
     print("[database] PostgreSQL seeded with demo data")
