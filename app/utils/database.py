@@ -46,6 +46,22 @@ def _try_mysql():
     except Exception:
         return False
 
+def _parse_pg_url(db_url):
+    """Parse DATABASE_URL into psycopg2 keyword arguments, handling special chars in password."""
+    from urllib.parse import urlparse
+    parsed = urlparse(db_url)
+    params = {
+        'host': parsed.hostname,
+        'port': parsed.port or 5432,
+        'dbname': (parsed.path or '/postgres').lstrip('/'),
+        'user': parsed.username,
+    }
+    password = parsed.password or ''
+    if password:
+        params['password'] = password
+    return params
+
+
 def _try_postgres():
     """Check if DATABASE_URL is set and PostgreSQL is reachable."""
     db_url = os.environ.get('DATABASE_URL', '')
@@ -53,17 +69,8 @@ def _try_postgres():
         return False
     try:
         import psycopg2
-        from urllib.parse import urlparse, quote
-        parsed = urlparse(db_url)
-        # Fix password that may contain un-encoded special chars (e.g. @)
-        password = parsed.password or ''
-        if password:
-            encoded_password = quote(password, safe='')
-            netloc = f"{parsed.username}:{encoded_password}@{parsed.hostname}"
-            if parsed.port:
-                netloc += f":{parsed.port}"
-            db_url = f"{parsed.scheme}://{netloc}{parsed.path}"
-        conn = psycopg2.connect(db_url, connect_timeout=10)
+        params = _parse_pg_url(db_url)
+        conn = psycopg2.connect(**params, connect_timeout=10)
         conn.close()
         return True
     except Exception as e:
@@ -87,18 +94,9 @@ def get_backend():
 # ── PostgreSQL connection ───────────────────────────────────
 def _pg_connect():
     import psycopg2
-    from urllib.parse import urlparse, quote
     db_url = os.environ.get('DATABASE_URL', '')
-    # Fix password that may contain un-encoded special chars (e.g. @)
-    parsed = urlparse(db_url)
-    password = parsed.password or ''
-    if password:
-        encoded_password = quote(password, safe='')
-        netloc = f"{parsed.username}:{encoded_password}@{parsed.hostname}"
-        if parsed.port:
-            netloc += f":{parsed.port}"
-        db_url = f"{parsed.scheme}://{netloc}{parsed.path}"
-    conn = psycopg2.connect(db_url)
+    params = _parse_pg_url(db_url)
+    conn = psycopg2.connect(**params)
     conn.autocommit = True
     return conn
 
