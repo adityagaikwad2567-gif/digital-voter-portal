@@ -53,10 +53,21 @@ def _try_postgres():
         return False
     try:
         import psycopg2
-        conn = psycopg2.connect(db_url, connect_timeout=3)
+        from urllib.parse import urlparse, quote
+        parsed = urlparse(db_url)
+        # Fix password that may contain un-encoded special chars (e.g. @)
+        password = parsed.password or ''
+        if password:
+            encoded_password = quote(password, safe='')
+            netloc = f"{parsed.username}:{encoded_password}@{parsed.hostname}"
+            if parsed.port:
+                netloc += f":{parsed.port}"
+            db_url = f"{parsed.scheme}://{netloc}{parsed.path}"
+        conn = psycopg2.connect(db_url, connect_timeout=10)
         conn.close()
         return True
-    except Exception:
+    except Exception as e:
+        print(f"[database] PostgreSQL connection failed: {e}")
         return False
 
 def get_backend():
@@ -76,7 +87,17 @@ def get_backend():
 # ── PostgreSQL connection ───────────────────────────────────
 def _pg_connect():
     import psycopg2
+    from urllib.parse import urlparse, quote
     db_url = os.environ.get('DATABASE_URL', '')
+    # Fix password that may contain un-encoded special chars (e.g. @)
+    parsed = urlparse(db_url)
+    password = parsed.password or ''
+    if password:
+        encoded_password = quote(password, safe='')
+        netloc = f"{parsed.username}:{encoded_password}@{parsed.hostname}"
+        if parsed.port:
+            netloc += f":{parsed.port}"
+        db_url = f"{parsed.scheme}://{netloc}{parsed.path}"
     conn = psycopg2.connect(db_url)
     conn.autocommit = True
     return conn
