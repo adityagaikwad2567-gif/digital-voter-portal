@@ -374,7 +374,8 @@ def init_database():
 
 
 def _init_postgres():
-    """Initialize PostgreSQL with schema and seed data."""
+    """Initialize PostgreSQL with schema and seed data.
+    Executes each statement individually for transaction-mode pooler compatibility."""
     schema_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         'database', 'schema_postgres.sql'
@@ -382,13 +383,23 @@ def _init_postgres():
     if os.path.exists(schema_path):
         with open(schema_path, 'r') as f:
             schema = f.read()
-        # Execute schema
+        # Split into individual statements and execute one by one
         conn = _pg_connect()
         conn.autocommit = True
         cur = conn.cursor()
-        cur.execute(schema)
+        for statement in schema.split(';'):
+            stmt = statement.strip()
+            if stmt and not stmt.startswith('--'):
+                try:
+                    cur.execute(stmt)
+                except Exception as e:
+                    # Ignore 'already exists' errors
+                    if 'already exists' not in str(e).lower():
+                        print(f"Schema statement error: {e}")
         cur.close()
         conn.close()
+    else:
+        print(f"[database] Schema file not found: {schema_path}")
 
     _seed_data_pg()
 
