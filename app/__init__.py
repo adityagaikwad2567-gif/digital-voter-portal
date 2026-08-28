@@ -244,14 +244,22 @@ app = create_app()
 from app.routes.auth import init_login_manager
 init_login_manager(app)
 
-# Auto-create tables and seed data on first boot
-with app.app_context():
-    from app.utils.database import init_database
-    try:
-        init_database()
-    except Exception as e:
-        print(f"Database init note: {e}")
-    try:
-        _seed_demo_data()
-    except Exception as e:
-        print(f"Seed note: {e}")
+# Lazy database initialization — runs on first request, not at import time
+_db_initialized = False
+
+@app.before_request
+def _lazy_db_init():
+    global _db_initialized
+    if _db_initialized:
+        return
+    _db_initialized = True
+    with app.app_context():
+        from app.utils.database import init_database
+        try:
+            init_database()
+        except Exception as e:
+            print(f"Database init note: {e}")
+        try:
+            _seed_demo_data()
+        except Exception as e:
+            print(f"Seed note: {e}")
