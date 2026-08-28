@@ -104,7 +104,7 @@ def _seed_demo_data():
 
     admin_pw = generate_password_hash('Admin@2026')
     voter_pw = generate_password_hash('Voter@2026')
-    off_pw = generate_password_hash('Official@12345')
+    off_pw = generate_password_hash('Official@2026')
 
     users = [
         ('System Administrator', 'admin@demo.local', '9000000000', None, admin_pw, 'ADMIN', 'active'),

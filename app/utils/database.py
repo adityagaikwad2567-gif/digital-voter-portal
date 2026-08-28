@@ -24,12 +24,37 @@ def _adapt_query(q):
     return q
 
 def _adapt_query_pg(q):
-    """Convert MySQL-style query to PostgreSQL-compatible query."""
-    q = q.replace('%s', '%s')  # PostgreSQL also uses %s, so no change needed
+    """Convert MySQL-style query to PostgreSQL-compatible query.
+    Handles: TIMESTAMPDIFF, CURDATE, DATE_FORMAT, NOW, LIMIT/OFFSET."""
     q = q.replace('ON UPDATE CURRENT_TIMESTAMP', '')
-    # DATE_FORMAT → to_char
-    q = re.sub(r"DATE_FORMAT\((\w+),\s*'([^']+)'\)", r"to_char(\1, '\2')", q)
+    # TIMESTAMPDIFF(YEAR, col, CURDATE()) → EXTRACT(YEAR FROM AGE(col::date))
+    q = re.sub(
+        r"TIMESTAMPDIFF\(\s*YEAR\s*,\s*(\w+\.?\w*)\s*,\s*CURDATE\(\s*\)\s*\)",
+        r"EXTRACT(YEAR FROM AGE(\1::date))", q
+    )
+    # CURDATE() → CURRENT_DATE
+    q = q.replace('CURDATE()', 'CURRENT_DATE')
+    # DATE_FORMAT(col, 'fmt') → to_char(col, 'fmt')
+    # PostgreSQL to_char uses different format codes than MySQL
+    q = re.sub(
+        r"DATE_FORMAT\((\w+\.?\w*),\s*'([^']+)'\)",
+        lambda m: f"to_char({m.group(1)}, '{_mysql_datefmt_to_pg(m.group(2))}')",
+        q
+    )
+    # NOW() works in PostgreSQL, no change needed
     return q
+
+
+def _mysql_datefmt_to_pg(fmt):
+    """Convert MySQL DATE_FORMAT codes to PostgreSQL to_char codes."""
+    mapping = {
+        '%Y': 'YYYY', '%m': 'MM', '%d': 'DD', '%H': 'HH24',
+        '%i': 'MI', '%s': 'SS', '%y': 'YY', '%M': 'Month',
+        '%b': 'Mon', '%W': 'Day', '%w': 'D',
+    }
+    for mysql_code, pg_code in mapping.items():
+        fmt = fmt.replace(mysql_code, pg_code)
+    return fmt
 
 
 # ── Backend detection ───────────────────────────────────────
