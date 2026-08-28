@@ -47,16 +47,55 @@ def _try_mysql():
         return False
 
 def _parse_pg_url(db_url):
-    """Parse DATABASE_URL into psycopg2 keyword arguments, handling special chars in password."""
-    from urllib.parse import urlparse
-    parsed = urlparse(db_url)
+    """Parse DATABASE_URL into psycopg2 keyword arguments.
+    Custom parser that handles brackets and @ in passwords
+    (Python 3.12+ urlparse chokes on brackets as IPv6 syntax)."""
+    # Strip scheme
+    url = db_url.replace('postgresql://', '').replace('postgres://', '')
+    # Split off dbname (everything after last /)
+    slash_idx = url.rfind('/')
+    if slash_idx >= 0:
+        dbname = url[slash_idx + 1:]
+        authority = url[:slash_idx]
+    else:
+        dbname = 'postgres'
+        authority = url
+    # Split user:password@host:port — find LAST @ to handle @ in password
+    at_idx = authority.rfind('@')
+    if at_idx >= 0:
+        userinfo = authority[:at_idx]
+        hostport = authority[at_idx + 1:]
+    else:
+        userinfo = ''
+        hostport = authority
+    # Split user:password — find FIRST : to get user
+    colon_idx = userinfo.find(':')
+    if colon_idx >= 0:
+        user = userinfo[:colon_idx]
+        password = userinfo[colon_idx + 1:]
+    else:
+        user = userinfo
+        password = ''
+    # Split host:port
+    if hostport.startswith('['):
+        # IPv6: [host]:port
+        bracket_end = hostport.find(']')
+        host = hostport[1:bracket_end] if bracket_end > 0 else hostport
+        port_str = hostport[bracket_end + 2:] if bracket_end + 1 < len(hostport) and hostport[bracket_end + 1] == ':' else ''
+    else:
+        colon_idx = hostport.rfind(':')
+        if colon_idx >= 0:
+            host = hostport[:colon_idx]
+            port_str = hostport[colon_idx + 1:]
+        else:
+            host = hostport
+            port_str = ''
     params = {
-        'host': parsed.hostname,
-        'port': parsed.port or 5432,
-        'dbname': (parsed.path or '/postgres').lstrip('/'),
-        'user': parsed.username,
+        'host': host,
+        'port': int(port_str) if port_str else 5432,
+        'dbname': dbname,
+        'user': user,
     }
-    password = parsed.password or ''
     if password:
         params['password'] = password
     return params
