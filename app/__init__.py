@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, session
 from flask_wtf.csrf import CSRFProtect
 from config import Config
 import os
@@ -12,14 +12,33 @@ def create_app():
     app = Flask(__name__, template_folder='../templates', static_folder='../static')
     app.config.from_object(Config)
 
-    # Initialize CSRF
+    print(f"[init] SECRET_KEY set: {bool(app.config.get('SECRET_KEY'))} (len={len(app.config.get('SECRET_KEY', ''))})")
+    print(f"[init] WTF_CSRF_ENABLED: {app.config.get('WTF_CSRF_ENABLED')}")
+    print(f"[init] SESSION_COOKIE_SECURE: {app.config.get('SESSION_COOKIE_SECURE')}")
+    print(f"[init] SESSION_COOKIE_SAMESITE: {app.config.get('SESSION_COOKIE_SAMESITE')}")
+
+    # Initialize CSRF — must come before csrf.error_handler
     csrf.init_app(app)
+
+    # Custom CSRF error handler — log details for debugging
+    @csrf.error_handler
+    def csrf_error(reason):
+        print(f"[CSRF FAIL] reason={reason}")
+        print(f"[CSRF FAIL] method={request.method} path={request.path}")
+        print(f"[CSRF FAIL] form_keys={list(request.form.keys())}")
+        print(f"[CSRF FAIL] has_csrf_token={'csrf_token' in request.form}")
+        print(f"[CSRF FAIL] session_keys={list(session.keys())}")
+        print(f"[CSRF FAIL] cookies={list(request.cookies.keys())}")
+        print(f"[CSRF FAIL] content_type={request.content_type}")
+        print(f"[CSRF FAIL] content_length={request.content_length}")
+        from flask import abort
+        abort(400, description=f"CSRF validation failed: {reason}")
 
     # Ensure upload folder exists (may fail on read-only Vercel filesystem)
     try:
         os.makedirs(app.config.get('UPLOAD_FOLDER', 'static/uploads'), exist_ok=True)
     except OSError:
-        pass  # Read-only filesystem (e.g. Vercel serverless)
+        pass
 
     # Register blueprints
     from app.routes.auth import auth_bp
@@ -199,7 +218,6 @@ def _seed_demo_data():
         (1, 'LOGIN', 'user', 1, '127.0.0.1', now),
         (3, 'LOGIN', 'user', 3, '127.0.0.1', '2026-08-26 09:30:00'),
         (2, 'LOGIN', 'user', 2, '127.0.0.1', '2026-08-26 09:00:00'),
-        (1, 'LOGIN', 'user', 1, '127.0.0.1', '2026-08-26 08:00:00'),
         (1, 'ELECTION_CREATED', 'election', 1, '127.0.0.1', '2026-08-20 09:00:00'),
     ]
     for a in audit_logs:
@@ -207,14 +225,10 @@ def _seed_demo_data():
             "INSERT INTO audit_logs (user_id, action, entity, entity_id, ip_address, created_at) "
             "VALUES (%s, %s, %s, %s, %s, %s)", a
         )
-
     grievances = [
-        (2, 'DEMO-2026-GRV000001', 'voter_registration', 'Name Mismatch',
-         'My name shows incorrectly on the electoral roll', 'aditya@demo.local', 'Submitted', now, now),
-        (3, 'DEMO-2026-GRV000002', 'polling_station', 'Accessibility Issue',
-         'Polling station lacks wheelchair ramp', 'aditi@demo.local', 'Submitted', now, now),
-        (4, 'DEMO-2026-GRV000003', 'application', 'Application Delay',
-         'My application has been pending for 2 weeks', 'rahul@demo.local', 'Submitted', now, now),
+        (2, 'DEMO-2026-GRV000001', 'voter_registration', 'Name Mismatch', 'My name shows incorrectly', 'aditya@demo.local', 'Submitted', now, now),
+        (3, 'DEMO-2026-GRV000002', 'polling_station', 'Accessibility Issue', 'No wheelchair ramp', 'aditi@demo.local', 'Submitted', now, now),
+        (4, 'DEMO-2026-GRV000003', 'application', 'Application Delay', 'Pending 2 weeks', 'rahul@demo.local', 'Submitted', now, now),
     ]
     for g in grievances:
         execute_db(
@@ -223,10 +237,9 @@ def _seed_demo_data():
         )
 
     notifications = [
-        (2, 'Welcome to Digital Voter Services', 'Your account has been created successfully.', False, now),
-        (3, 'Application Approved', 'Your new registration application has been approved.', False, now),
-        (4, 'Application Approved', 'Your new registration application has been approved.', False, now),
-        (1, 'System Update', 'The portal has been upgraded with new features.', True, now),
+        (2, 'Welcome', 'Account created successfully.', False, now),
+        (3, 'Application Approved', 'Your registration is approved.', False, now),
+        (1, 'System Update', 'Portal upgraded.', True, now),
     ]
     for n in notifications:
         execute_db(
@@ -244,7 +257,7 @@ app = create_app()
 from app.routes.auth import init_login_manager
 init_login_manager(app)
 
-# Lazy database initialization — runs on first request, not at import time
+# Lazy database initialization — runs on first request
 _db_initialized = False
 
 @app.before_request
@@ -253,6 +266,7 @@ def _lazy_db_init():
     if _db_initialized:
         return
     _db_initialized = True
+    print("[init] Running first-request DB init...")
     with app.app_context():
         from app.utils.database import init_database
         try:
@@ -263,3 +277,4 @@ def _lazy_db_init():
             _seed_demo_data()
         except Exception as e:
             print(f"Seed note: {e}")
+    print("[init] DB init complete")
