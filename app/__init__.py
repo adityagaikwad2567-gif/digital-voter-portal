@@ -17,22 +17,26 @@ def create_app():
     print(f"[init] SESSION_COOKIE_SECURE: {app.config.get('SESSION_COOKIE_SECURE')}")
     print(f"[init] SESSION_COOKIE_SAMESITE: {app.config.get('SESSION_COOKIE_SAMESITE')}")
 
-    # Initialize CSRF — must come before csrf.error_handler
+    # Initialize CSRF
     csrf.init_app(app)
 
-    # Custom CSRF error handler — log details for debugging
-    @csrf.error_handler
-    def csrf_error(reason):
-        print(f"[CSRF FAIL] reason={reason}")
-        print(f"[CSRF FAIL] method={request.method} path={request.path}")
-        print(f"[CSRF FAIL] form_keys={list(request.form.keys())}")
-        print(f"[CSRF FAIL] has_csrf_token={'csrf_token' in request.form}")
-        print(f"[CSRF FAIL] session_keys={list(session.keys())}")
-        print(f"[CSRF FAIL] cookies={list(request.cookies.keys())}")
-        print(f"[CSRF FAIL] content_type={request.content_type}")
-        print(f"[CSRF FAIL] content_length={request.content_length}")
-        from flask import abort
-        abort(400, description=f"CSRF validation failed: {reason}")
+    # Debug: log CSRF details on 400 errors
+    @app.errorhandler(400)
+    def handle_400(e):
+        if 'CSRF' in str(e.description):
+            print(f"[CSRF FAIL] description={e.description}")
+            print(f"[CSRF FAIL] method={request.method} path={request.path}")
+            print(f"[CSRF FAIL] form_keys={list(request.form.keys())}")
+            print(f"[CSRF FAIL] has_csrf_token={'csrf_token' in request.form}")
+            print(f"[CSRF FAIL] session_keys={list(session.keys())}")
+            print(f"[CSRF FAIL] cookies={list(request.cookies.keys())}")
+            print(f"[CSRF FAIL] content_type={request.content_type}")
+            from flask import make_response
+            resp = make_response('<h1>CSRF Error</h1><p>See server logs for details.</p>', 400)
+            return resp
+        # Not a CSRF error, use default 404 handler
+        from app.routes.errors import not_found_error
+        return not_found_error(e.code)
 
     # Ensure upload folder exists (may fail on read-only Vercel filesystem)
     try:
