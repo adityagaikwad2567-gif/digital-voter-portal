@@ -36,7 +36,10 @@ def login():
         user_data = get_user_by_email(email)
         if user_data and verify_password(user_data, password):
             user = User(user_data)
-            if user.status != 'active':
+            if user.status == 'pending':
+                flash('Your account is pending admin approval. Please wait for an administrator to approve your registration.', 'warning')
+                return render_template('auth/login.html')
+            elif user.status != 'active':
                 flash('Your account has been suspended. Please contact support.', 'danger')
                 return render_template('auth/login.html')
             
@@ -91,10 +94,14 @@ def register():
                 flash(e, 'warning')
             return render_template('auth/register.html', name=name, email=email, mobile=mobile)
         
-        user_id = create_user(name, email, mobile, password, role='VOTER')
+        user_id = create_user(name, email, mobile, password, role='VOTER', status='pending')
         if user_id:
+            # Auto-create a new_registration application for admin approval
+            from app.services.db_operations import create_application, create_voter_profile
+            app_id, ref_number = create_application(user_id, 'new_registration',
+                remarks=f'New voter registration request by {name}')
             log_user_action(user_id, 'REGISTER', 'user', user_id)
-            flash('Registration successful! Please login with your credentials.', 'success')
+            flash(f'Registration submitted successfully! Your reference number is <strong>{ref_number}</strong>. Your account is pending admin approval. You will be able to login once an administrator approves your registration.', 'success')
             return redirect(url_for('auth.login'))
         else:
             flash('Registration failed. Please try again.', 'danger')

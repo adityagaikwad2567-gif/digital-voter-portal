@@ -164,18 +164,30 @@ def applications():
 @admin_bp.route('/application/<int:app_id>/approve', methods=['POST'])
 @admin_required
 def approve_application(app_id):
+    from app.utils.database import query_db
+    app_data = query_db('SELECT * FROM applications WHERE id = %s', (app_id,), one=True)
+    if app_data and app_data.get('application_type') == 'new_registration':
+        # Activate the voter account
+        update_voter_status(app_data['user_id'], 'active')
+        log_user_action(current_user.id, 'VOTER_ACTIVATED', 'user', app_data['user_id'])
     update_application_status(app_id, 'Approved', 'Approved by admin')
     log_user_action(current_user.id, 'APPLICATION_APPROVED', 'application', app_id)
-    flash('Application approved.', 'success')
+    flash('Application approved. Voter account activated.', 'success')
     return redirect(url_for('admin.applications'))
 
 
 @admin_bp.route('/application/<int:app_id>/reject', methods=['POST'])
 @admin_required
 def reject_application(app_id):
+    from app.utils.database import query_db
+    app_data = query_db('SELECT * FROM applications WHERE id = %s', (app_id,), one=True)
+    if app_data and app_data.get('application_type') == 'new_registration':
+        # Deactivate the voter account
+        update_voter_status(app_data['user_id'], 'inactive')
+        log_user_action(current_user.id, 'VOTER_DEACTIVATED', 'user', app_data['user_id'])
     update_application_status(app_id, 'Rejected', 'Rejected by admin')
     log_user_action(current_user.id, 'APPLICATION_REJECTED', 'application', app_id)
-    flash('Application rejected.', 'danger')
+    flash('Application rejected. Voter account deactivated.', 'danger')
     return redirect(url_for('admin.applications'))
 
 

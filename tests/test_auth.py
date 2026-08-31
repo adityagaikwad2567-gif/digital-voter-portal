@@ -37,7 +37,7 @@ class TestLoginPage:
     def test_wrong_password_rejected(self, client):
         """Login with wrong password should be rejected."""
         r = client.post('/auth/login', data={
-            'email': 'admin@demo.local',
+            'email': 'adityagaikwad@2567',
             'password': 'WrongPassword!',
         }, follow_redirects=True)
         assert r.status_code == 200
@@ -97,7 +97,7 @@ class TestRegistration:
         """Registering with an existing email should fail."""
         r = client.post('/auth/register', data={
             'name': 'Duplicate User',
-            'email': 'admin@demo.local',  # already exists
+            'email': 'adityagaikwad@2567',  # already exists
             'mobile': '9999999999',
             'password': 'Secure@123',
             'confirm_password': 'Secure@123',

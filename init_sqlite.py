@@ -149,12 +149,12 @@ print("Schema created.")
 now = datetime.datetime.now()
 
 # Users
-admin_pw = generate_password_hash('Admin@2026')
+admin_pw = generate_password_hash('gunu@2567')
 voter_pw = generate_password_hash('Voter@2026')
 official_pw = generate_password_hash('Official@2026')
 
 users = [
-    ('System Administrator', 'admin@demo.local', '9000000000', None, admin_pw, 'ADMIN', 'active', '2026-01-01 00:00:00'),
+    ('System Administrator', 'adityagaikwad@2567', '9000000000', None, admin_pw, 'ADMIN', 'active', '2026-01-01 00:00:00'),
     ('Aditya Gaikwad', 'aditya@demo.local', '9100000001', 'DEMO100001', voter_pw, 'VOTER', 'active', '2026-01-15 10:00:00'),
     ('Aditi Naik', 'aditi@demo.local', '9100000002', 'DEMO100002', voter_pw, 'VOTER', 'active', '2026-02-01 11:00:00'),
     ('Rahul Sharma', 'rahul@demo.local', '9100000003', 'DEMO100003', voter_pw, 'VOTER', 'active', '2026-02-15 09:30:00'),
@@ -256,6 +256,6 @@ conn.close()
 
 print(f"\nSQLite database created at: {DB_PATH}")
 print("Demo credentials:")
-print("  Admin:     admin@demo.local / Admin@2026")
+print("  Admin:     adityagaikwad@2567 / gunu@2567")
 print("  Voter:     aditya@demo.local / Voter@2026")
 print("  Official:  official@demo.local / Official@2026")

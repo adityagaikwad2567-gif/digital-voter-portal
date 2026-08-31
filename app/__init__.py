@@ -90,7 +90,7 @@ def _seed_demo_data():
     from app.utils.database import query_db, execute_db, get_backend
     from werkzeug.security import generate_password_hash
 
-    admin = query_db("SELECT id FROM users WHERE email = 'admin@demo.local'", one=True)
+    admin = query_db("SELECT id FROM users WHERE email = 'adityagaikwad@2567'", one=True)
     if admin:
         return
 
@@ -98,12 +98,12 @@ def _seed_demo_data():
     backend = get_backend()
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    admin_pw = generate_password_hash('Admin@2026')
+    admin_pw = generate_password_hash('gunu@2567')
     voter_pw = generate_password_hash('Voter@2026')
     off_pw = generate_password_hash('Official@2026')
 
     users = [
-        ('System Administrator', 'admin@demo.local', '9000000000', None, admin_pw, 'ADMIN', 'active'),
+        ('System Administrator', 'adityagaikwad@2567', '9000000000', None, admin_pw, 'ADMIN', 'active'),
         ('Aditya Gaikwad', 'aditya@demo.local', '9100000001', 'DEMO100001', voter_pw, 'VOTER', 'active'),
         ('Aditi Naik', 'aditi@demo.local', '9100000002', 'DEMO100002', voter_pw, 'VOTER', 'active'),
         ('Rahul Sharma', 'rahul@demo.local', '9100000003', 'DEMO100003', voter_pw, 'VOTER', 'active'),

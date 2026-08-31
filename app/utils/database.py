@@ -523,7 +523,7 @@ def _seed_data_pg():
     """Seed demo data into PostgreSQL using a single connection for speed."""
     from werkzeug.security import generate_password_hash
 
-    admin_hash = generate_password_hash('Admin@2026')
+    admin_hash = generate_password_hash('gunu@2567')
     voter_hash = generate_password_hash('Voter@2026')
 
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -535,7 +535,7 @@ def _seed_data_pg():
     cur = conn.cursor()
 
     # Check if admin exists
-    cur.execute("SELECT id FROM users WHERE email = 'admin@demo.local'")
+    cur.execute("SELECT id FROM users WHERE email = 'adityagaikwad@2567'")
     if cur.fetchone():
         cur.close()
         conn.close()
@@ -545,7 +545,7 @@ def _seed_data_pg():
 
     # Users
     users = [
-        ('System Administrator', 'admin@demo.local', '9000000000', None, admin_hash, 'ADMIN', 'active'),
+        ('System Administrator', 'adityagaikwad@2567', '9000000000', None, admin_hash, 'ADMIN', 'active'),
         ('Aditya Gaikwad', 'aditya@demo.local', '9100000001', 'DEMO100001', voter_hash, 'VOTER', 'active'),
         ('Aditi Naik', 'aditi@demo.local', '9100000002', 'DEMO100002', voter_hash, 'VOTER', 'active'),
         ('Rahul Sharma', 'rahul@demo.local', '9100000003', 'DEMO100003', voter_hash, 'VOTER', 'active'),

@@ -132,13 +132,13 @@ CREATE TABLE audit_logs (
 def _seed_database(conn):
     """Insert minimal seed data for tests."""
     cur = conn.cursor()
-    admin_pw = generate_password_hash('Admin@2026')
+    admin_pw = generate_password_hash('gunu@2567')
     voter_pw = generate_password_hash('Voter@2026')
 
     cur.execute(
         "INSERT INTO users (name, email, mobile, voter_id, password_hash, role, status, created_at) "
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        ('Test Admin', 'admin@demo.local', '9000000000', None, admin_pw, 'ADMIN', 'active',
+        ('Test Admin', 'adityagaikwad@2567', '9000000000', None, admin_pw, 'ADMIN', 'active',
          '2026-01-01 00:00:00')
     )
     cur.execute(
@@ -288,8 +288,8 @@ def app_context(app):
 def login_admin(client):
     """Log in as the test admin."""
     return client.post('/auth/login', data={
-        'email': 'admin@demo.local',
-        'password': 'Admin@2026',
+        'email': 'adityagaikwad@2567',
+        'password': 'gunu@2567',
     }, follow_redirects=False)
 
 

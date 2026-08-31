@@ -201,7 +201,7 @@ digital-voter-portal/
 
 | Role | Email | Password |
 |------|-------|----------|
-| **Admin** | admin@demo.local | Admin@2026 |
+| **Admin** | adityagaikwad@2567 | gunu@2567 |
 | **Voter** | aditya@demo.local | Voter@2026 |
 | **Voter** | aditi@demo.local | Voter@2026 |
 | **Voter** | rahul@demo.local | Voter@2026 |
