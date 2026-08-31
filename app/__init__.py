@@ -15,30 +15,21 @@ def create_app():
     print(f"[init] SECRET_KEY set: {bool(app.config.get('SECRET_KEY'))} (len={len(app.config.get('SECRET_KEY', ''))})")
     print(f"[init] WTF_CSRF_ENABLED: {app.config.get('WTF_CSRF_ENABLED')}")
     print(f"[init] SESSION_COOKIE_SECURE: {app.config.get('SESSION_COOKIE_SECURE')}")
-    print(f"[init] SESSION_COOKIE_SAMESITE: {app.config.get('SESSION_COOKIE_SAMESITE')}")
+
+    # IMPORTANT: Register debug hook BEFORE csrf.init_app so it runs first
+    @app.before_request
+    def _debug_every_request():
+        print(f"[REQ] {request.method} {request.path} content_type={request.content_type}")
+        if request.method == 'POST':
+            print(f"[REQ] form_keys={list(request.form.keys())}")
+            print(f"[REQ] has_csrf_in_form={'csrf_token' in request.form}")
+            print(f"[REQ] cookies={list(request.cookies.keys())}")
+            print(f"[REQ] session_cookie={'session' in request.cookies}")
 
     # Initialize CSRF
     csrf.init_app(app)
 
-    # Debug: log CSRF details on 400 errors
-    @app.errorhandler(400)
-    def handle_400(e):
-        if 'CSRF' in str(e.description):
-            print(f"[CSRF FAIL] description={e.description}")
-            print(f"[CSRF FAIL] method={request.method} path={request.path}")
-            print(f"[CSRF FAIL] form_keys={list(request.form.keys())}")
-            print(f"[CSRF FAIL] has_csrf_token={'csrf_token' in request.form}")
-            print(f"[CSRF FAIL] session_keys={list(session.keys())}")
-            print(f"[CSRF FAIL] cookies={list(request.cookies.keys())}")
-            print(f"[CSRF FAIL] content_type={request.content_type}")
-            from flask import make_response
-            resp = make_response('<h1>CSRF Error</h1><p>See server logs for details.</p>', 400)
-            return resp
-        # Not a CSRF error, use default 404 handler
-        from app.routes.errors import not_found_error
-        return not_found_error(e.code)
-
-    # Ensure upload folder exists (may fail on read-only Vercel filesystem)
+    # Ensure upload folder exists
     try:
         os.makedirs(app.config.get('UPLOAD_FOLDER', 'static/uploads'), exist_ok=True)
     except OSError:
@@ -63,11 +54,9 @@ def create_app():
     app.register_blueprint(info_bp, url_prefix='/info')
     app.register_blueprint(admin_bp, url_prefix='/admin')
 
-    # Register error handlers
     from app.routes.errors import register_error_handlers
     register_error_handlers(app)
 
-    # Template context processor
     from app.services.db_operations import get_unread_notification_count
     from flask_login import current_user
 
@@ -84,11 +73,9 @@ def create_app():
             'unread_notifications': notif_count
         }
 
-    # Register translations
     from app.utils.translations import get_translation
     app.jinja_env.globals.update(get_translation=get_translation)
 
-    # Jinja2 filter: format date regardless of whether it's str or datetime
     def format_date(value, fmt='%d %b %Y'):
         if value is None:
             return 'N/A'
@@ -171,14 +158,12 @@ def _seed_demo_data():
 
     yesterday = (datetime.datetime.now() - datetime.timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')
     week_later = (datetime.datetime.now() + datetime.timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
-
     execute_db(
         "INSERT INTO elections (name, description, election_type, constituency, start_time, end_time, status, created_at) "
         "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
         ('BCA Student Council Election 2026', 'Annual student council election for BCA department',
          'Student Council', 'All Constituencies', yesterday, week_later, 'Active', now)
     )
-
     past_start = (datetime.datetime.now() - datetime.timedelta(days=60)).strftime('%Y-%m-%d %H:%M:%S')
     past_end = (datetime.datetime.now() - datetime.timedelta(days=53)).strftime('%Y-%m-%d %H:%M:%S')
     execute_db(
@@ -218,38 +203,25 @@ def _seed_demo_data():
         (4, 'new_registration', 'DEMO-2026-REG000001', 'Approved', '2026-01-15 10:00:00', '2026-02-01 10:00:00')
     )
 
-    audit_logs = [
+    for a in [
         (1, 'LOGIN', 'user', 1, '127.0.0.1', now),
         (3, 'LOGIN', 'user', 3, '127.0.0.1', '2026-08-26 09:30:00'),
         (2, 'LOGIN', 'user', 2, '127.0.0.1', '2026-08-26 09:00:00'),
         (1, 'ELECTION_CREATED', 'election', 1, '127.0.0.1', '2026-08-20 09:00:00'),
-    ]
-    for a in audit_logs:
-        execute_db(
-            "INSERT INTO audit_logs (user_id, action, entity, entity_id, ip_address, created_at) "
-            "VALUES (%s, %s, %s, %s, %s, %s)", a
-        )
-    grievances = [
+    ]:
+        execute_db("INSERT INTO audit_logs (user_id, action, entity, entity_id, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)", a)
+    for g in [
         (2, 'DEMO-2026-GRV000001', 'voter_registration', 'Name Mismatch', 'My name shows incorrectly', 'aditya@demo.local', 'Submitted', now, now),
         (3, 'DEMO-2026-GRV000002', 'polling_station', 'Accessibility Issue', 'No wheelchair ramp', 'aditi@demo.local', 'Submitted', now, now),
         (4, 'DEMO-2026-GRV000003', 'application', 'Application Delay', 'Pending 2 weeks', 'rahul@demo.local', 'Submitted', now, now),
-    ]
-    for g in grievances:
-        execute_db(
-            "INSERT INTO grievances (user_id, reference_number, category, subject, description, contact_info, status, created_at, updated_at) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", g
-        )
-
-    notifications = [
+    ]:
+        execute_db("INSERT INTO grievances (user_id, reference_number, category, subject, description, contact_info, status, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", g)
+    for n in [
         (2, 'Welcome', 'Account created successfully.', False, now),
         (3, 'Application Approved', 'Your registration is approved.', False, now),
         (1, 'System Update', 'Portal upgraded.', True, now),
-    ]
-    for n in notifications:
-        execute_db(
-            "INSERT INTO notifications (user_id, title, message, is_read, created_at) "
-            "VALUES (%s, %s, %s, %s, %s)", n
-        )
+    ]:
+        execute_db("INSERT INTO notifications (user_id, title, message, is_read, created_at) VALUES (%s, %s, %s, %s, %s)", n)
 
     print("Demo data seeded successfully!")
 
@@ -261,7 +233,7 @@ app = create_app()
 from app.routes.auth import init_login_manager
 init_login_manager(app)
 
-# Lazy database initialization — runs on first request
+# Lazy database initialization
 _db_initialized = False
 
 @app.before_request
