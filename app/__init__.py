@@ -27,6 +27,19 @@ def create_app():
             print(f"[REQ] session_cookie={'session' in request.cookies}")
 
     # Initialize CSRF
+    # Monkey-patch to debug validation
+    from flask_wtf.csrf import validate_csrf as _orig_validate
+    import flask_wtf.csrf as _csrf_mod
+    def _debug_validate(*a, **kw):
+        try:
+            result = _orig_validate(*a, **kw)
+            print(f"[CSRF VALID] token validated OK: {result}")
+            return result
+        except Exception as e:
+            print(f"[CSRF FAIL] validate_csrf raised: {type(e).__name__}: {e}")
+            print(f"[CSRF FAIL] token being validated: {str(a[0])[:50] if a else 'none'}")
+            raise
+    _csrf_mod.validate_csrf = _debug_validate
     csrf.init_app(app)
 
     # Ensure upload folder exists
