@@ -25,7 +25,7 @@ def login():
         return redirect(url_for('main.home'))
     
     if request.method == 'POST':
-        email = request.form.get('email', '').strip()
+        email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         remember = request.form.get('remember', False)
         
@@ -69,8 +69,9 @@ def register():
     
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
-        email = request.form.get('email', '').strip()
+        email = request.form.get('email', '').strip().lower()
         mobile = request.form.get('mobile', '').strip()
+        voter_id_input = request.form.get('voter_id', '').strip().upper()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
         
@@ -86,18 +87,39 @@ def register():
         if password != confirm_password:
             errors.append('Passwords do not match.')
         
-        if get_user_by_email(email):
+        # Check email existence (case-insensitive)
+        existing_user = get_user_by_email(email)
+        if existing_user:
             errors.append('Email already registered.')
+        
+        # Check voter_id existence if provided
+        if voter_id_input:
+            from app.services.db_operations import get_user_by_voter_id
+            existing_voter = get_user_by_voter_id(voter_id_input)
+            if existing_voter:
+                errors.append('Voter ID already registered.')
         
         if errors:
             for e in errors:
                 flash(e, 'warning')
-            return render_template('auth/register.html', name=name, email=email, mobile=mobile)
+            return render_template('auth/register.html', name=name, email=email, mobile=mobile, voter_id=voter_id_input)
         
-        user_id = create_user(name, email, mobile, password, role='VOTER', status='pending')
+        try:
+            user_id = create_user(name, email, mobile, password, role='VOTER', status='pending',
+                                  voter_id=voter_id_input if voter_id_input else None)
+        except Exception as e:
+            err_str = str(e).lower()
+            if 'unique' in err_str and 'email' in err_str:
+                flash('Email already registered.', 'danger')
+            elif 'unique' in err_str and 'voter_id' in err_str:
+                flash('Voter ID already registered.', 'danger')
+            else:
+                flash('Registration failed. Please try again.', 'danger')
+            return render_template('auth/register.html', name=name, email=email, mobile=mobile, voter_id=voter_id_input)
+        
         if user_id:
             # Auto-create a new_registration application for admin approval
-            from app.services.db_operations import create_application, create_voter_profile
+            from app.services.db_operations import create_application
             app_id, ref_number = create_application(user_id, 'new_registration',
                 remarks=f'New voter registration request by {name}')
             log_user_action(user_id, 'REGISTER', 'user', user_id)

@@ -32,6 +32,11 @@
                         <input type="tel" class="form-control" id="mobile" name="mobile" value="{{ mobile|default('') }}" required pattern="[0-9]{10,}" placeholder="10-digit mobile number">
                     </div>
                     <div class="mb-3">
+                        <label for="voter_id" class="form-label">Voter ID (EPIC) <span class="text-muted">Optional</span></label>
+                        <input type="text" class="form-control" id="voter_id" name="voter_id" value="{{ voter_id|default('') }}" placeholder="e.g. ABC1234567" style="text-transform: uppercase;">
+                        <small class="text-muted">If you have an existing Voter ID, enter it here. Leave blank if registering for the first time.</small>
+                    </div>
+                    <div class="mb-3">
                         <label for="password" class="form-label">Password *</label>
                         <input type="password" class="form-control" id="password" name="password" required minlength="8" placeholder="Minimum 8 characters">
                     </div>

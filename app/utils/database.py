@@ -218,7 +218,13 @@ def _execute_pg(query, args):
     try:
         conn = _pg_connect()
         cur = conn.cursor()
-        cur.execute(_adapt_query_pg(query), args)
+        adapted = _adapt_query_pg(query)
+        # PostgreSQL INSERT without RETURNING doesn't expose the inserted ID.
+        # Append RETURNING id so we can return it (mirrors MySQL's lastrowid).
+        q_upper = adapted.strip().upper()
+        if q_upper.startswith('INSERT') and 'RETURNING' not in q_upper:
+            adapted += ' RETURNING id'
+        cur.execute(adapted, args)
         lastrowid = None
         if cur.description:
             row = cur.fetchone()

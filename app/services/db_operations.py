@@ -18,12 +18,12 @@ def _safe_count(query, params=None):
 
 # ─── User Operations ────────────────────────────────────────
 
-def create_user(name, email, mobile, password, role='VOTER', status='active'):
+def create_user(name, email, mobile, password, role='VOTER', status='active', voter_id=None):
     """Create a new user account."""
     password_hash = generate_password_hash(password)
     user_id = execute_db(
-        "INSERT INTO users (name, email, mobile, password_hash, role, status) VALUES (%s, %s, %s, %s, %s, %s)",
-        (name, email, mobile, password_hash, role, status)
+        "INSERT INTO users (name, email, mobile, voter_id, password_hash, role, status) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        (name, email, mobile, voter_id, password_hash, role, status)
     )
     return user_id
 
