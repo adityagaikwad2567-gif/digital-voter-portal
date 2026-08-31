@@ -12,34 +12,7 @@ def create_app():
     app = Flask(__name__, template_folder='../templates', static_folder='../static')
     app.config.from_object(Config)
 
-    print(f"[init] SECRET_KEY set: {bool(app.config.get('SECRET_KEY'))} (len={len(app.config.get('SECRET_KEY', ''))})")
-    print(f"[init] WTF_CSRF_ENABLED: {app.config.get('WTF_CSRF_ENABLED')}")
-    print(f"[init] SESSION_COOKIE_SECURE: {app.config.get('SESSION_COOKIE_SECURE')}")
-
-    # IMPORTANT: Register debug hook BEFORE csrf.init_app so it runs first
-    @app.before_request
-    def _debug_every_request():
-        print(f"[REQ] {request.method} {request.path} content_type={request.content_type}")
-        if request.method == 'POST':
-            print(f"[REQ] form_keys={list(request.form.keys())}")
-            print(f"[REQ] has_csrf_in_form={'csrf_token' in request.form}")
-            print(f"[REQ] cookies={list(request.cookies.keys())}")
-            print(f"[REQ] session_cookie={'session' in request.cookies}")
-
     # Initialize CSRF
-    # Monkey-patch to debug validation
-    from flask_wtf.csrf import validate_csrf as _orig_validate
-    import flask_wtf.csrf as _csrf_mod
-    def _debug_validate(*a, **kw):
-        try:
-            result = _orig_validate(*a, **kw)
-            print(f"[CSRF VALID] token validated OK: {result}")
-            return result
-        except Exception as e:
-            print(f"[CSRF FAIL] validate_csrf raised: {type(e).__name__}: {e}")
-            print(f"[CSRF FAIL] token being validated: {str(a[0])[:50] if a else 'none'}")
-            raise
-    _csrf_mod.validate_csrf = _debug_validate
     csrf.init_app(app)
 
     # Ensure upload folder exists
@@ -255,7 +228,6 @@ def _lazy_db_init():
     if _db_initialized:
         return
     _db_initialized = True
-    print("[init] Running first-request DB init...")
     with app.app_context():
         from app.utils.database import init_database
         try:
@@ -266,4 +238,3 @@ def _lazy_db_init():
             _seed_demo_data()
         except Exception as e:
             print(f"Seed note: {e}")
-    print("[init] DB init complete")

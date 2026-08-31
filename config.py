@@ -13,6 +13,7 @@ class Config:
     DATABASE_PORT = int(os.environ.get('DATABASE_PORT', 3306))
     SESSION_TIMEOUT_MINUTES = int(os.environ.get('SESSION_TIMEOUT_MINUTES', 30))
     WTF_CSRF_ENABLED = True
+    WTF_CSRF_SSL_STRICT = False  # Required for Vercel/reverse proxy deployments
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV') == 'production'
